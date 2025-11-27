@@ -1,0 +1,22 @@
+#pragma once
+
+namespace Game::Version {
+    
+    static constexpr auto MAJOR = @OpenGL_FPS_VERSION_MAJOR@;
+    static constexpr auto MINOR = @OpenGL_FPS_VERSION_MINOR@;
+    static constexpr auto PATCH = @OpenGL_FPS_VERSION_PATCH@;
+
+}
+
+namespace Game::Config {
+
+#if DEBUG
+    static constexpr bool logToFile = true;
+#else
+    static constexpr bool logToFile = false;
+#endif
+
+    static constexpr bool loggingEnabled = true;
+    static constexpr bool openGLDebugEnabled = true;
+
+}
