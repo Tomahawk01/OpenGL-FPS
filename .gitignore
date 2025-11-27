@@ -8,3 +8,6 @@
 # Binaries
 **/bin/
 bin-int/
+
+# Game files
+**/log
