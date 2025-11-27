@@ -2,7 +2,6 @@
 
 #include "Game/config.h"
 #include "Graphics/OpenGL.h"
-#include "Events/Event.h"
 #include "Utils/Error.h"
 
 #include <hidusage.h>
