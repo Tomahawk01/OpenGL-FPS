@@ -1,7 +1,7 @@
 #pragma once
 
-#include <gl/GL.h>
 #include <Windows.h>
+#include <gl/GL.h>
 
 #include "opengl/glext.h"
 #include "opengl/wglext.h"
@@ -70,6 +70,7 @@
 	DO(PFNGLGENERATETEXTUREMIPMAPPROC, glGenerateTextureMipmap) \
 	DO(PFNGLNAMEDFRAMEBUFFERREADBUFFERPROC, glNamedFramebufferReadBuffer) \
 	DO(PFNGLNAMEDFRAMEBUFFERDRAWBUFFERPROC, glNamedFramebufferDrawBuffer) \
+	DO(PFNGLOBJECTLABELPROC, glObjectLabel) \
 	DO(PFNGLDRAWARRAYSEXTPROC, glDrawArraysEXT)
 
 #define DO_DEFINE(TYPE, NAME) inline TYPE NAME;
