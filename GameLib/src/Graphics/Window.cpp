@@ -88,14 +88,13 @@ namespace {
 
 	void ResolveWGLFunctions(HINSTANCE instance)
 	{
-		WNDCLASSA wc = WNDCLASSA{
+		WNDCLASSA wc = {
 			.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC,
 			.lpfnWndProc = DefWindowProcA,
 			.hInstance = instance,
 			.lpszClassName = "dummy window"
 		};
-		const auto clazz = RegisterClassA(&wc);
-		Game::Ensure(clazz != 0, "Could not register dummy window");
+		Game::Ensure(RegisterClassA(&wc) != 0, "Could not register dummy window");
 
 		auto dummyWindow = Game::AutoRelease<HWND>{
 			CreateWindowExA(
