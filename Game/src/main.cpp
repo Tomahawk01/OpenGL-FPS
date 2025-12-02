@@ -18,6 +18,7 @@ namespace {
 	struct VertexData
 	{
 		float position[3];
+		float color[3];
 	};
 
 	layout(binding = 0, std430) readonly buffer vertices
@@ -30,20 +31,30 @@ namespace {
 		return vec3(data[index].position[0], data[index].position[1], data[index].position[2]);
 	}
 
+	vec3 get_color(int index)
+	{
+		return vec3(data[index].color[0], data[index].color[1], data[index].color[2]);
+	}
+
+	layout(location = 0) out vec3 out_color;
+
 	void main()
 	{
 		gl_Position = vec4(get_position(gl_VertexID), 1.0);
+		out_color = get_color(gl_VertexID);
 	}
 	)"sv;
 
 	constexpr auto sampleFragmentShader = R"(
 	#version 460 core
 	
-	layout(location = 0) out vec4 color;
+	layout(location = 0) in vec3 in_color;
+
+	layout(location = 0) out vec4 out_color;
 
 	void main()
 	{
-		color = vec4(0.0, 0.5, 1.0, 1.0);
+		out_color = vec4(in_color, 1.0);
 	}
 	)"sv;
 
@@ -71,10 +82,10 @@ int main()
 	const auto sampleFrag = Game::Shader{ sampleFragmentShader, Game::ShaderType::FRAGMENT, "sample_fragment_shader"sv };
 	const auto sampleProg = Game::Program{ sampleVert, sampleFrag, "sample_prog"sv };
 
-	const Game::VertexData triangle[] = {
-		{{0.0f, 0.5f, 0.0f}},
-		{{-0.5f, -0.5f, 0.0f}},
-		{{0.5f, -0.5f, 0.0f}}
+	Game::VertexData triangle[] = {
+		{{0.0f, 0.5f, 0.0f}, Game::Colors::Azure},
+		{{-0.5f, -0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
+		{{0.5f, -0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}}
 	};
 
 	const auto triangleView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(triangle), sizeof(triangle) };
@@ -120,6 +131,13 @@ int main()
 
 			event = window.PollEvent();
 		}
+
+		triangle[0].color.r += 0.01f;
+		if (triangle[0].color.r >= 1.0f)
+		{
+			triangle[0].color.r = 0.0f;
+		}
+		triangleBuffer.Write(triangleView, size_t{ 0 });
 
 		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
 
