@@ -6,14 +6,14 @@ namespace {
 
 	void CheckState(GLuint handle, GLenum state, std::string_view name, std::string_view message)
 	{
-			auto res = GLint{};
-			glGetProgramiv(handle, state, &res);
-			if (res != GL_TRUE)
-			{
-				char log[512]{};
-				glGetProgramInfoLog(handle, sizeof(log), nullptr, log);
-				throw Game::Exception("{}: {} {}", message, name, log);
-			}
+		auto res = GLint{};
+		glGetProgramiv(handle, state, &res);
+		if (res != GL_TRUE)
+		{
+			char log[512]{};
+			glGetProgramInfoLog(handle, sizeof(log), nullptr, log);
+			throw Game::Exception("{}: {} {}", message, name, log);
+		}
 	}
 
 }
