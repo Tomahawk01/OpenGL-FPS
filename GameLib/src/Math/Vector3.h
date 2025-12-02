@@ -1,7 +1,30 @@
 #pragma once
 
-#include <cmath>
 #include <format>
+
+namespace {
+
+	constexpr float custom_sqrt(float x) noexcept
+	{
+		if (x < 0) return NAN;
+
+		float guess = x;
+		float prev = 0.0f;
+
+		while (guess != prev)
+		{
+			prev = guess;
+			guess = 0.5f * (guess + x / guess);
+		}
+		return guess;
+	}
+
+	constexpr float custom_hypot(float x, float y, float z)
+	{
+		return custom_sqrt(x * x + y * y + z * z);
+	}
+
+}
 
 namespace Game {
 
@@ -21,7 +44,7 @@ namespace Game {
 
 		constexpr float Length() const
 		{
-			return std::hypot(x, y, z);
+			return custom_hypot(x, y, z);
 		}
 
 		static constexpr vec3 Normalize(const vec3& v)
@@ -51,7 +74,7 @@ namespace Game {
 
 		constexpr bool operator==(const vec3&) const = default;
 
-		constexpr std::string to_string() const;
+		std::string to_string() const;
 
 		float x;
 		float y;
@@ -128,7 +151,7 @@ namespace Game {
 		return (v2 - v1).Length();
 	}
 
-	constexpr std::string vec3::to_string() const
+	std::string vec3::to_string() const
 	{
 		return std::format("x={} y={} z={}", x, y, z);
 	}
