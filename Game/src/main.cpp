@@ -47,6 +47,14 @@ namespace {
 	}
 	)"sv;
 
+	struct IndirectCommand
+	{
+		uint32_t count;
+		uint32_t instanceCount;
+		uint32_t first;
+		uint32_t baseInstance;
+	};
+
 }
 
 int main()
@@ -71,13 +79,24 @@ int main()
 
 	const auto triangleView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(triangle), sizeof(triangle) };
 	const auto triangleBuffer = Game::Buffer{ sizeof(triangle) };
-	triangleBuffer.Write(triangleView, std::size_t{ 0 });
+	triangleBuffer.Write(triangleView, size_t{ 0 });
+
+	const auto commandBuffer = Game::Buffer{ sizeof(IndirectCommand) };
+	const auto command = IndirectCommand{
+		.count = 3,
+		.instanceCount = 1,
+		.first = 0,
+		.baseInstance = 0
+	};
+	const auto commandView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(&command), sizeof(command) };
+	commandBuffer.Write(commandView, size_t{ 0 });
 
 	auto dummyVAO = Game::AutoRelease<GLuint>{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } };
 	glGenVertexArrays(1, &dummyVAO);
 
 	glBindVertexArray(dummyVAO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangleBuffer.GetNativeHandle());
+	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.GetNativeHandle());
 	sampleProg.Use();
 
 	while (running)
@@ -102,7 +121,7 @@ int main()
 			event = window.PollEvent();
 		}
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
 
 		window.Swap();
 	}
