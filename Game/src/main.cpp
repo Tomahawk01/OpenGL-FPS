@@ -4,6 +4,8 @@
 #include "Graphics/Program.h"
 #include "Graphics/VertexData.h"
 #include "Graphics/Buffer.h"
+#include "Graphics/PersistentBuffer.h"
+#include "Graphics/MultiBuffer.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -89,10 +91,11 @@ int main()
 	};
 
 	const auto triangleView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(triangle), sizeof(triangle) };
-	const auto triangleBuffer = Game::Buffer{ sizeof(triangle) };
+
+	auto triangleBuffer = Game::MultiBuffer<Game::PersistentBuffer>{ sizeof(triangle), "triangle_buffer" };
 	triangleBuffer.Write(triangleView, size_t{ 0 });
 
-	const auto commandBuffer = Game::Buffer{ sizeof(IndirectCommand) };
+	const auto commandBuffer = Game::Buffer{ sizeof(IndirectCommand), "command_buffer" };
 	const auto command = IndirectCommand{
 		.count = 3,
 		.instanceCount = 1,
@@ -106,7 +109,7 @@ int main()
 	glGenVertexArrays(1, &dummyVAO);
 
 	glBindVertexArray(dummyVAO);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangleBuffer.GetNativeHandle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangleBuffer.GetBuffer().GetNativeHandle());
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.GetNativeHandle());
 	sampleProg.Use();
 
@@ -132,14 +135,16 @@ int main()
 			event = window.PollEvent();
 		}
 
+		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
+		triangleBuffer.Advance();
+
 		triangle[0].color.r += 0.01f;
 		if (triangle[0].color.r >= 1.0f)
 		{
 			triangle[0].color.r = 0.0f;
 		}
-		triangleBuffer.Write(triangleView, size_t{ 0 });
 
-		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
+		triangleBuffer.Write(triangleView, size_t{ 0 });
 
 		window.Swap();
 	}
