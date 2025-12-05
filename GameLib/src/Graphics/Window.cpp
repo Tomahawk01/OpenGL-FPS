@@ -15,7 +15,7 @@ namespace {
 	PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB{};
 	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB{};
 
-	static std::queue<Game::Event> g_EventQueue{};
+	std::queue<Game::Event> g_EventQueue{};
 
 	void APIENTRY OpenGLDebugCallback(
 		GLenum src,
