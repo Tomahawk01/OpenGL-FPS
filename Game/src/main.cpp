@@ -85,9 +85,13 @@ int main()
 	const auto sampleProg = Game::Program{ sampleVert, sampleFrag, "sample_prog"sv };
 
 	Game::VertexData triangle[] = {
-		{{0.0f, 0.5f, 0.0f}, Game::Colors::Azure},
-		{{-0.5f, -0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
-		{{0.5f, -0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}}
+		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
+		{{-0.5f, 0.0f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
+		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
+
+		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
+		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
+		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}}
 	};
 
 	const auto triangleView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(triangle), sizeof(triangle) };
@@ -95,14 +99,22 @@ int main()
 	auto triangleBuffer = Game::MultiBuffer<Game::PersistentBuffer>{ sizeof(triangle), "triangle_buffer" };
 	triangleBuffer.Write(triangleView, size_t{ 0 });
 
-	const auto commandBuffer = Game::Buffer{ sizeof(IndirectCommand), "command_buffer" };
-	const auto command = IndirectCommand{
-		.count = 3,
-		.instanceCount = 1,
-		.first = 0,
-		.baseInstance = 0
+	const IndirectCommand commands[] = {
+		{
+			.count = 3,
+			.instanceCount = 1,
+			.first = 0,
+			.baseInstance = 0
+		},
+		{
+			.count = 3,
+			.instanceCount = 1,
+			.first = 3,
+			.baseInstance = 0
+		},
 	};
-	const auto commandView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(&command), sizeof(command) };
+	const auto commandBuffer = Game::Buffer{ sizeof(commands), "command_buffer" };
+	const auto commandView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(&commands), sizeof(commands) };
 	commandBuffer.Write(commandView, size_t{ 0 });
 
 	auto dummyVAO = Game::AutoRelease<GLuint>{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } };
@@ -121,7 +133,8 @@ int main()
 		while (event && running)
 		{
 			std::visit(
-				[&](auto&& arg) {
+				[&](auto&& arg)
+				{
 					using T = std::decay_t<decltype(arg)>;
 
 					if constexpr (std::same_as<T, Game::KeyEvent>)
@@ -135,7 +148,7 @@ int main()
 			event = window.PollEvent();
 		}
 
-		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 1, 0);
+		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
 		triangleBuffer.Advance();
 
 		triangle[0].color.r += 0.01f;
@@ -143,6 +156,7 @@ int main()
 		{
 			triangle[0].color.r = 0.0f;
 		}
+		triangle[3].color = triangle[0].color;
 
 		triangleBuffer.Write(triangleView, size_t{ 0 });
 
