@@ -24,4 +24,9 @@ namespace Game {
 		return m_Buffer;
 	}
 
+	size_t Buffer::GetSize() const
+	{
+		return m_Size;
+	}
+
 }

@@ -17,6 +17,8 @@ namespace Game {
 
 		GLuint GetNativeHandle() const;
 
+		size_t GetSize() const;
+
 	private:
 		AutoRelease<GLuint> m_Buffer;
 		size_t m_Size;
