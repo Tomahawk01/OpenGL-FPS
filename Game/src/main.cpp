@@ -6,6 +6,7 @@
 #include "Graphics/Buffer.h"
 #include "Graphics/PersistentBuffer.h"
 #include "Graphics/MultiBuffer.h"
+#include "Graphics/MeshManager.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -84,32 +85,28 @@ int main()
 	const auto sampleFrag = Game::Shader{ sampleFragmentShader, Game::ShaderType::FRAGMENT, "sample_fragment_shader"sv };
 	const auto sampleProg = Game::Program{ sampleVert, sampleFrag, "sample_prog"sv };
 
-	Game::VertexData triangle[] = {
+	auto meshManager = Game::MeshManager{};
+
+	const auto tri1 = meshManager.Load({
 		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
 		{{-0.5f, 0.0f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
-		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
-
+		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}} });
+	const auto tri2 = meshManager.Load({
 		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
 		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
-		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}}
-	};
-
-	const auto triangleView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(triangle), sizeof(triangle) };
-
-	auto triangleBuffer = Game::MultiBuffer<Game::PersistentBuffer>{ sizeof(triangle), "triangle_buffer" };
-	triangleBuffer.Write(triangleView, size_t{ 0 });
+		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} });
 
 	const IndirectCommand commands[] = {
 		{
-			.count = 3,
+			.count = tri1.count,
 			.instanceCount = 1,
-			.first = 0,
+			.first = tri1.offset,
 			.baseInstance = 0
 		},
 		{
-			.count = 3,
+			.count = tri2.count,
 			.instanceCount = 1,
-			.first = 3,
+			.first = tri2.offset,
 			.baseInstance = 0
 		},
 	};
@@ -121,7 +118,7 @@ int main()
 	glGenVertexArrays(1, &dummyVAO);
 
 	glBindVertexArray(dummyVAO);
-	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, triangleBuffer.GetBuffer().GetNativeHandle());
+	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, meshManager.GetNativeHandle());
 	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.GetNativeHandle());
 	sampleProg.Use();
 
@@ -149,16 +146,6 @@ int main()
 		}
 
 		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
-		triangleBuffer.Advance();
-
-		triangle[0].color.r += 0.01f;
-		if (triangle[0].color.r >= 1.0f)
-		{
-			triangle[0].color.r = 0.0f;
-		}
-		triangle[3].color = triangle[0].color;
-
-		triangleBuffer.Write(triangleView, size_t{ 0 });
 
 		window.Swap();
 	}
