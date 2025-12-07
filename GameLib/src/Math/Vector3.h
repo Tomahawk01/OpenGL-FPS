@@ -151,7 +151,7 @@ namespace Game {
 		return (v2 - v1).Length();
 	}
 
-	std::string vec3::to_string() const
+	inline std::string vec3::to_string() const
 	{
 		return std::format("x={} y={} z={}", x, y, z);
 	}
