@@ -30,12 +30,6 @@ int main()
 		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}} })
 	});
 
-	scene.entities.push_back({ meshManager.Load({
-		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
-		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
-		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} })
-	});
-
 	while (running)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -50,8 +44,19 @@ int main()
 
 					if constexpr (std::same_as<T, Game::KeyEvent>)
 					{
-						Game::Log::Info("Stopping...");
-						running = false;
+						if (arg.GetKey() == Game::Key::T)
+						{
+							scene.entities.push_back({ meshManager.Load({
+								{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
+								{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
+								{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} })
+							});
+						}
+						else
+						{
+							Game::Log::Info("Stopping...");
+							running = false;
+						}
 					}
 				}, *event
 			);
