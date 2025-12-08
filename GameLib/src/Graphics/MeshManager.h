@@ -1,19 +1,13 @@
 #pragma once
 
-#include "VertexData.h"
 #include "Buffer.h"
+#include "MeshView.h"
+#include "VertexData.h"
 
-#include <cstdint>
 #include <vector>
 #include <string>
 
 namespace Game {
-
-	struct MeshView
-	{
-		uint32_t offset;
-		uint32_t count;
-	};
 
 	class MeshManager
 	{
