@@ -2,11 +2,10 @@
 #include "Graphics/Window.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Program.h"
-#include "Graphics/VertexData.h"
 #include "Graphics/Buffer.h"
-#include "Graphics/PersistentBuffer.h"
-#include "Graphics/MultiBuffer.h"
+#include "Graphics/CommandBuffer.h"
 #include "Graphics/MeshManager.h"
+#include "Graphics/Scene.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -61,14 +60,6 @@ namespace {
 	}
 	)"sv;
 
-	struct IndirectCommand
-	{
-		uint32_t count;
-		uint32_t instanceCount;
-		uint32_t first;
-		uint32_t baseInstance;
-	};
-
 }
 
 int main()
@@ -86,40 +77,27 @@ int main()
 	const auto sampleProg = Game::Program{ sampleVert, sampleFrag, "sample_prog"sv };
 
 	auto meshManager = Game::MeshManager{};
+	auto commandBuffer = Game::CommandBuffer{};
 
-	const auto tri1 = meshManager.Load({
+	auto scene = Game::Scene{ .entities = {}, .meshManager = meshManager };
+
+	scene.entities.push_back({ meshManager.Load({
 		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
 		{{-0.5f, 0.0f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
-		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}} });
-	const auto tri2 = meshManager.Load({
+		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}} })
+	});
+
+	scene.entities.push_back({ meshManager.Load({
 		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
 		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
-		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} });
-
-	const IndirectCommand commands[] = {
-		{
-			.count = tri1.count,
-			.instanceCount = 1,
-			.first = tri1.offset,
-			.baseInstance = 0
-		},
-		{
-			.count = tri2.count,
-			.instanceCount = 1,
-			.first = tri2.offset,
-			.baseInstance = 0
-		},
-	};
-	const auto commandBuffer = Game::Buffer{ sizeof(commands), "command_buffer" };
-	const auto commandView = Game::DataBufferView{ reinterpret_cast<const std::byte*>(&commands), sizeof(commands) };
-	commandBuffer.Write(commandView, size_t{ 0 });
+		{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} })
+	});
 
 	auto dummyVAO = Game::AutoRelease<GLuint>{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } };
 	glGenVertexArrays(1, &dummyVAO);
 
 	glBindVertexArray(dummyVAO);
 	glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, meshManager.GetNativeHandle());
-	glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.GetNativeHandle());
 	sampleProg.Use();
 
 	while (running)
@@ -145,7 +123,13 @@ int main()
 			event = window.PollEvent();
 		}
 
-		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, 2, 0);
+		const auto commandCount = commandBuffer.Build(scene);
+
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, commandBuffer.GetNativeHandle());
+
+		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, commandCount, 0);
+
+		commandBuffer.Advance();
 
 		window.Swap();
 	}
