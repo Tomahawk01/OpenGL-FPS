@@ -39,6 +39,11 @@ namespace Game {
 			return m_Buffer;
 		}
 
+		size_t GetOriginalSize() const
+		{
+			return m_OriginalSize;
+		}
+
 	private:
 		Buffer m_Buffer;
 		size_t m_OriginalSize;
