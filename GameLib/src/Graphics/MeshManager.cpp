@@ -27,11 +27,15 @@ namespace Game {
 				newSize *= 2;
 			}
 
-			Log::Info("Growing mesh_data buffer {:x} -> {:x}", m_MeshDataGPU.GetSize(), newSize);
+			Log::Info("Growing mesh_data buffer {} -> {}", m_MeshDataGPU.GetSize(), newSize);
+
+			// OpenGL barrier in case gpu using previous frame
+			glFinish();
+
 			m_MeshDataGPU = Buffer{ newSize, "mesh_data" };
 		}
 
-		auto meshView = DataBufferView{ reinterpret_cast<const std::byte*>(m_MeshDataCPU.data()), bufferSizeBytes };
+		const auto meshView = DataBufferView{ reinterpret_cast<const std::byte*>(m_MeshDataCPU.data()), bufferSizeBytes };
 		m_MeshDataGPU.Write(meshView, 0u);
 
 		return {
@@ -47,7 +51,7 @@ namespace Game {
 
 	std::string MeshManager::to_string() const
 	{
-		return std::format("Mesh manager: vertex count: {:x}", m_MeshDataCPU.size());
+		return std::format("Mesh manager: vertex count: {}", m_MeshDataCPU.size());
 	}
 
 }
