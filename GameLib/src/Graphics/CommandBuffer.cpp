@@ -64,6 +64,11 @@ namespace Game {
 		m_CommandBuffer.Advance();
 	}
 
+	size_t CommandBuffer::OffsetBytes() const
+	{
+		return m_CommandBuffer.FrameOffsetBytes();
+	}
+
 	GLuint CommandBuffer::GetNativeHandle() const
 	{
 		return m_CommandBuffer.GetBuffer().GetNativeHandle();

@@ -17,6 +17,7 @@ namespace Game {
 
 		uint32_t Build(const Scene& scene);
 		void Advance();
+		size_t OffsetBytes() const;
 
 		GLuint GetNativeHandle() const;
 		std::string to_string() const;
