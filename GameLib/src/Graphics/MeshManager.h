@@ -3,6 +3,7 @@
 #include "Buffer.h"
 #include "MeshView.h"
 #include "VertexData.h"
+#include "MeshData.h"
 
 #include <vector>
 #include <string>
@@ -14,14 +15,17 @@ namespace Game {
 	public:
 		MeshManager();
 
-		MeshView Load(const std::vector<VertexData>& mesh);
+		MeshView Load(const MeshData& meshData);
 
-		GLuint GetNativeHandle() const;
+		std::tuple<GLuint, GLuint> GetNativeHandle() const;
+
 		std::string to_string() const;
 
 	private:
-		std::vector<VertexData> m_MeshDataCPU;
-		Buffer m_MeshDataGPU;
+		std::vector<VertexData> m_VertexDataCPU;
+		std::vector<uint32_t> m_IndexDataCPU;
+		Buffer m_VertexDataGPU;
+		Buffer m_IndexDataGPU;
 	};
 
 }
