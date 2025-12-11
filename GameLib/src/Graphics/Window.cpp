@@ -1,6 +1,6 @@
 #include "Window.h"
 
-#include "Game/config.h"
+#include "config.h"
 #include "Graphics/OpenGL.h"
 #include "Utils/Error.h"
 

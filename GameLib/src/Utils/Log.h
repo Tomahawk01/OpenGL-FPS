@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Game/config.h"
+#include "config.h"
 
 #include <filesystem>
 #include <format>
