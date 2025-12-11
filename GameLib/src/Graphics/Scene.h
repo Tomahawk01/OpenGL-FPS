@@ -2,6 +2,7 @@
 
 #include "Entity.h"
 #include "MeshManager.h"
+#include "Core/Camera.h"
 
 #include <vector>
 
@@ -11,6 +12,7 @@ namespace Game {
 	{
 		std::vector<Entity> entities;
 		MeshManager& meshManager;
+		Camera camera;
 	};
 
 }
