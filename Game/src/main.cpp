@@ -10,6 +10,8 @@
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
 
+#include <numbers>
+
 namespace {
 
 	Game::MeshData Cube()
@@ -36,7 +38,8 @@ namespace {
 												 {
 													 return Game::VertexData{.position = e, .color = Game::Colors::Azure };
 												 }) | std::ranges::to<std::vector>(),
-				 .indices = std::move(indices) };
+				 .indices = std::move(indices)
+		};
 	}
 
 }
@@ -54,7 +57,18 @@ int main()
 	auto meshManager = Game::MeshManager{};
 	auto renderer = Game::Renderer{};
 
-	auto scene = Game::Scene{ .entities = {}, .meshManager = meshManager };
+	auto scene = Game::Scene{
+		.entities = {},
+		.meshManager = meshManager,
+		.camera = {
+			{},
+			{0.0f, 0.0f, -1.0f},
+			{0.0f, 1.0f, 0.0f},
+			std::numbers::pi_v<float> / 4.0f,
+			static_cast<float>(window.GetRenderHeight()), static_cast<float>(window.GetRenderHeight()),
+			0.1f, 1000.0f
+		}
+	};
 
 	scene.entities.push_back(
 		{ meshManager.Load(Cube()) }
@@ -74,14 +88,19 @@ int main()
 
 					if constexpr (std::same_as<T, Game::KeyEvent>)
 					{
-						Game::Log::Info("Stopping...");
-						running = false;
+						if (arg.GetKey() == Game::Key::ESC)
+						{
+							Game::Log::Info("Stopping...");
+							running = false;
+						}
 					}
 				}, *event
 			);
 
 			event = window.PollEvent();
 		}
+
+		scene.camera.Translate({ 0.0f, 0.0f, 0.01f });
 
 		renderer.Render(scene);
 
