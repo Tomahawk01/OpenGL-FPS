@@ -5,9 +5,41 @@
 #include "Graphics/CommandBuffer.h"
 #include "Graphics/MeshManager.h"
 #include "Graphics/Renderer.h"
+#include "Graphics/MeshData.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
+
+namespace {
+
+	Game::MeshData Cube()
+	{
+		const Game::vec3 positions[] = {
+			{-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f},
+			{-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}, {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f},
+			{-1.0f, -1.0f, -1.0f}, {-1.0f, -1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, -1.0f},
+			{1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, -1.0f},
+			{-1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f},
+			{-1.0f, -1.0f, 1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, 1.0f}
+		};
+
+		const std::vector<uint32_t> indices = {
+			0, 1, 2, 2, 3, 0,
+			4, 5, 6, 6, 7, 4,
+			8, 9, 10, 10, 11, 8,
+			12, 13, 14, 14, 15, 12,
+			16, 17, 18, 18, 19, 16,
+			20, 21, 22, 22, 23, 20
+		};
+
+		return { .vertices = positions | std::views::transform([](const auto& e)
+												 {
+													 return Game::VertexData{.position = e, .color = Game::Colors::Azure };
+												 }) | std::ranges::to<std::vector>(),
+				 .indices = std::move(indices) };
+	}
+
+}
 
 int main()
 {
@@ -24,11 +56,9 @@ int main()
 
 	auto scene = Game::Scene{ .entities = {}, .meshManager = meshManager };
 
-	scene.entities.push_back({ meshManager.Load({
-		{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
-		{{-0.5f, 0.0f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}},
-		{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}} })
-	});
+	scene.entities.push_back(
+		{ meshManager.Load(Cube()) }
+	);
 
 	while (running)
 	{
@@ -44,19 +74,8 @@ int main()
 
 					if constexpr (std::same_as<T, Game::KeyEvent>)
 					{
-						if (arg.GetKey() == Game::Key::T)
-						{
-							scene.entities.push_back({ meshManager.Load({
-								{{0.0f, 0.0f, 0.0f}, Game::Colors::Azure},
-								{{-0.5f, 0.5f, 0.0f}, Game::Color{0.42f, 0.42f, 0.42f}},
-								{{0.0f, 0.5f, 0.0f}, Game::Color{0.6f, 0.1f, 0.0f}} })
-							});
-						}
-						else
-						{
-							Game::Log::Info("Stopping...");
-							running = false;
-						}
+						Game::Log::Info("Stopping...");
+						running = false;
 					}
 				}, *event
 			);
