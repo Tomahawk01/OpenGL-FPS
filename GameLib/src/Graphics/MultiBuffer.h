@@ -34,6 +34,11 @@ namespace Game {
 			m_FrameOffset = (m_FrameOffset + m_OriginalSize) % (m_OriginalSize * Frames);
 		}
 
+		auto GetNativeHandle() const
+		{
+			return m_Buffer.GetNativeHandle();
+		}
+
 		const Buffer& GetBuffer() const
 		{
 			return m_Buffer;
