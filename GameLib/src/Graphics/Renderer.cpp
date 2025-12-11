@@ -82,7 +82,7 @@ namespace Game {
 
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_CommandBuffer.GetNativeHandle());
 
-		glMultiDrawArraysIndirect(GL_TRIANGLES, nullptr, commandCount, 0);
+		glMultiDrawArraysIndirect(GL_TRIANGLES, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_CommandBuffer.Advance();
 	}
