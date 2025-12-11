@@ -94,6 +94,14 @@ int main()
 							running = false;
 						}
 					}
+					else if constexpr (std::same_as<T, Game::MouseEvent>)
+					{
+						static constexpr auto sensitivity = 0.002f;
+						const auto deltaX = arg.GetDeltaX() * sensitivity;
+						const auto deltaY = arg.GetDeltaY() * sensitivity;
+						scene.camera.AddYaw(deltaX);
+						scene.camera.AddPitch(-deltaY);
+					}
 				}, *event
 			);
 
