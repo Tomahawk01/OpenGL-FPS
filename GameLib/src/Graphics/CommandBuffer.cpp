@@ -13,6 +13,7 @@ namespace {
 		uint32_t count;
 		uint32_t instanceCount;
 		uint32_t first;
+		int32_t baseVertex;
 		uint32_t baseInstance;
 	};
 
@@ -26,14 +27,18 @@ namespace Game {
 
 	uint32_t CommandBuffer::Build(const Scene& scene)
 	{
+		auto base = 0;
 		const auto command = scene.entities | std::views::transform(
-			[](const auto& e)
+			[&base](const auto& e)
 			{
-				return IndirectCommand{
-					.count = e.meshView.count,
+				const auto cmd = IndirectCommand{
+					.count = e.meshView.indexCount,
 					.instanceCount = 1u,
-					.first = e.meshView.offset,
+					.first = e.meshView.indexOffset,
+					.baseVertex = base,
 					.baseInstance = 0u };
+				base += e.meshView.vertexOffset;
+				return cmd;
 			}) | std::ranges::to<std::vector>();
 
 		const auto commandView = DataBufferView{ reinterpret_cast<const std::byte*>(command.data()), command.size() * sizeof(IndirectCommand) };

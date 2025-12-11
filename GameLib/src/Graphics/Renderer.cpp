@@ -76,13 +76,15 @@ namespace Game {
 
 	void Renderer::Render(const Scene& scene)
 	{
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, scene.meshManager.GetNativeHandle());
+		const auto [vertexBufferHandle, indexBufferHandle] = scene.meshManager.GetNativeHandle();
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBufferHandle);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferHandle);
 
 		const auto commandCount = m_CommandBuffer.Build(scene);
 
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_CommandBuffer.GetNativeHandle());
 
-		glMultiDrawArraysIndirect(GL_TRIANGLES, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
+		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_CommandBuffer.Advance();
 	}
