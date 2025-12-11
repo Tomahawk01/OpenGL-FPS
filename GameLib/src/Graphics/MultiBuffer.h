@@ -44,6 +44,11 @@ namespace Game {
 			return m_OriginalSize;
 		}
 
+		size_t FrameOffsetBytes() const
+		{
+			return m_FrameOffset;
+		}
+
 	private:
 		Buffer m_Buffer;
 		size_t m_OriginalSize;
