@@ -18,6 +18,7 @@ namespace Game {
 	private:
 		AutoRelease<GLuint> m_DummyVAO;
 		CommandBuffer m_CommandBuffer;
+		MultiBuffer<PersistentBuffer> m_CameraBuffer;
 		Program m_Program;
 	};
 
