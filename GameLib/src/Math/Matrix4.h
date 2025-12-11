@@ -1,0 +1,186 @@
+#pragma once
+
+#include "Vector3.h"
+#include "Utils/Error.h"
+
+#include <array>
+#include <ranges>
+#include <format>
+#include <span>
+
+namespace Game {
+
+	class mat4
+	{
+	public:
+		struct Scale {};
+
+		constexpr mat4()
+			: m_Elements({
+				1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f
+			})
+		{}
+
+		explicit mat4(const std::array<float, 16u>& elements)
+			: mat4{ std::span<const float>{elements} }
+		{}
+
+		explicit mat4(const std::span<const float>& elements)
+			: mat4{}
+		{
+			Ensure(elements.size() == 16u, "Not enough elements");
+			std::ranges::copy(elements, std::ranges::begin(m_Elements));
+		}
+
+		explicit constexpr mat4(const vec3& translation)
+			: m_Elements({
+				1.0f, 0.0f, 0.0f, 0.0f,
+				0.0f, 1.0f, 0.0f, 0.0f,
+				0.0f, 0.0f, 1.0f, 0.0f,
+				translation.x, translation.y, translation.z, 1.0f
+			})
+		{}
+
+		constexpr mat4(const vec3& scale, Scale)
+			: m_Elements({
+				scale.x, 0.0f, 0.0f, 0.0f,
+				0.0f, scale.y, 0.0f, 0.0f,
+				0.0f, 0.0f, scale.z, 0.0f,
+				0.0f, 0.0f, 0.0f, 1.0f
+			})
+		{}
+
+		constexpr mat4(const vec3& translation, const vec3& scale)
+			: m_Elements({
+				scale.x, 0.0f, 0.0f, 0.0f,
+				0.0f, scale.y, 0.0f, 0.0f,
+				0.0f, 0.0f, scale.z, 0.0f,
+				translation.x, translation.y, translation.z, 1.0f
+			})
+		{}
+
+		static constexpr mat4 LookAt(const vec3& eye, const vec3& lookAt, const vec3& up);
+		static mat4 Perspective(float fov, float width, float height, float nearPlane, float farPlane);
+		static constexpr mat4 Orthographic(float width, float height, float depth);
+
+		constexpr std::span<const float> Data() const
+		{
+			return m_Elements;
+		}
+
+		constexpr auto& operator[](this auto&& self, size_t index)
+		{
+			return self.m_Elements[index];
+		}
+
+		friend constexpr mat4& operator*=(mat4& m1, const mat4& m2);
+
+		constexpr bool operator==(const mat4&) const = default;
+
+		std::string to_string() const;
+
+	private:
+		std::array<float, 16u> m_Elements;
+	};
+
+	constexpr mat4& operator*=(mat4& m1, const mat4& m2)
+	{
+		mat4 result{};
+
+		for (auto i = 0u; i < 4u; i++)
+		{
+			for (auto j = 0u; j < 4u; j++)
+			{
+				auto sum = 0.0f;
+				for (auto k = 0u; k < 4u; k++)
+				{
+					sum += m1.m_Elements[i + k * 4] * m2.m_Elements[k + j * 4];
+				}
+				result.m_Elements[i + j * 4] = sum;
+			}
+		}
+
+		m1 = result;
+		return m1;
+	}
+
+	constexpr mat4 operator*(const mat4& m1, const mat4& m2)
+	{
+		mat4 temp{ m1 };
+		return temp *= m2;
+	}
+
+	constexpr mat4 mat4::LookAt(const vec3& eye, const vec3& lookAt, const vec3& up)
+	{
+		const vec3 f = vec3::Normalize(lookAt - eye);
+		const vec3 upNormalized = vec3::Normalize(up);
+
+		const vec3 s = vec3::Normalize(vec3::Cross(f, upNormalized));
+		const vec3 u = vec3::Normalize(vec3::Cross(s, f));
+
+		mat4 m{};
+		m.m_Elements = {
+			{s.x, u.x, -f.x, 0.0f,
+			 s.y, u.y, -f.y, 0.0f,
+			 s.z, u.z, -f.z, 0.0f,
+			 0.0f, 0.0f, 0.0f, 1.0f}
+		};
+
+		return m * mat4{ -eye };
+	}
+
+	inline mat4 mat4::Perspective(float fov, float width, float height, float nearPlane, float farPlane)
+	{
+		mat4 m;
+
+		const float aspectRatio = width / height;
+		const float temp = std::tan(fov / 2.0f);
+		const float t = temp * nearPlane;
+		const float b = -t;
+		const float r = t * aspectRatio;
+		const float l = b * aspectRatio;
+
+		m.m_Elements = {
+			{(2.0f * nearPlane) / (r - l), 0.0f, 0.0f, 0.0f,
+			 0.0f, (2.0f * nearPlane) / (t - b), 0.0f, 0.0f,
+			 (r + l) / (r - l), (t + b) / (t - b), -(farPlane + nearPlane) / (farPlane - nearPlane), -1.0f,
+			 0.0f, 0.0f, -(2.0f * farPlane * nearPlane) / (farPlane - nearPlane), 0.0f}
+		};
+
+		return m;
+	}
+
+	constexpr mat4 mat4::Orthographic(float width, float height, float depth)
+	{
+		const float right = width / 2.0f;
+		const float left = -right;
+		const float top = height / 2.0f;
+		const float bottom = -top;
+		const float far_ = depth;
+		const float near_ = 0.0f;
+
+		mat4 m{};
+		m.m_Elements = { {
+			2.0f / (right - left), 0.0f, 0.0f, 0.0f,
+			0.0f, 2.0f / (top - bottom), 0.0f, 0.0f,
+			0.0f, 0.0f, -2.0f / (far_ - near_), 0.0f,
+			-(right + left) / (right - left), -(top + bottom) / (top - bottom), -(far_ + near_) / (far_ - near_), 1.0f
+		} };
+
+		return m;
+	}
+
+	inline std::string mat4::to_string() const
+	{
+		const float* d = Data().data();
+		return std::format("{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n{} {} {} {}",
+						   d[0], d[4], d[8], d[12],
+						   d[1], d[5], d[9], d[13],
+						   d[2], d[6], d[10], d[14],
+						   d[3], d[7], d[11], d[15]);
+	}
+
+}
