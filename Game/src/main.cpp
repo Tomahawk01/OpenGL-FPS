@@ -11,6 +11,7 @@
 #include "Utils/SystemInfo.h"
 
 #include <numbers>
+#include <unordered_map>
 
 namespace {
 
@@ -40,6 +41,31 @@ namespace {
 												 }) | std::ranges::to<std::vector>(),
 				 .indices = std::move(indices)
 		};
+	}
+
+	Game::vec3 WalkDirection(std::unordered_map<Game::Key, bool>& keyState, const Game::Camera& camera)
+	{
+		auto direction = Game::vec3{};
+
+		if (keyState[Game::Key::W])
+		{
+			direction += camera.GetDirection();
+		}
+		if (keyState[Game::Key::S])
+		{
+			direction -= camera.GetDirection();
+		}
+		if (keyState[Game::Key::D])
+		{
+			direction += camera.Right();
+		}
+		if (keyState[Game::Key::A])
+		{
+			direction -= camera.Right();
+		}
+
+		constexpr auto speed = 0.5f;
+		return Game::vec3::Normalize(direction) * speed;
 	}
 
 }
@@ -74,6 +100,13 @@ int main()
 		{ meshManager.Load(Cube()) }
 	);
 
+	auto keyState = std::unordered_map<Game::Key, bool>{
+		{Game::Key::W, false},
+		{Game::Key::A, false},
+		{Game::Key::S, false},
+		{Game::Key::D, false}
+	};
+
 	while (running)
 	{
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -93,6 +126,10 @@ int main()
 							Game::Log::Info("Stopping...");
 							running = false;
 						}
+						else
+						{
+							keyState[arg.GetKey()] = arg.GetState() == Game::KeyState::DOWN;
+						}
 					}
 					else if constexpr (std::same_as<T, Game::MouseEvent>)
 					{
@@ -108,7 +145,7 @@ int main()
 			event = window.PollEvent();
 		}
 
-		scene.camera.Translate({ 0.0f, 0.0f, 0.01f });
+		scene.camera.Translate(WalkDirection(keyState, scene.camera));
 
 		renderer.Render(scene);
 
