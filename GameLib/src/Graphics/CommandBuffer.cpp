@@ -1,5 +1,6 @@
 #include "CommandBuffer.h"
 
+#include "Utils.h"
 #include "Utils/Log.h"
 
 #include <cstdint>
@@ -43,21 +44,7 @@ namespace Game {
 
 		const auto commandView = DataBufferView{ reinterpret_cast<const std::byte*>(command.data()), command.size() * sizeof(IndirectCommand) };
 
-		if (commandView.size_bytes() > m_CommandBuffer.GetOriginalSize())
-		{
-			auto newSize = m_CommandBuffer.GetOriginalSize() * 2;
-			while (newSize < commandView.size_bytes())
-			{
-				newSize *= 2;
-			}
-
-			Log::Info("Growing command buffer {} -> {}", m_CommandBuffer.GetOriginalSize(), newSize);
-
-			// OpenGL barrier in case gpu using previous frame
-			glFinish();
-
-			m_CommandBuffer = MultiBuffer<PersistentBuffer>{ newSize, "mesh_data" };
-		}
+		ResizeGPUBuffer(command, m_CommandBuffer, "command_buffer");
 
 		m_CommandBuffer.Write(commandView, 0u);
 
@@ -81,7 +68,7 @@ namespace Game {
 
 	std::string CommandBuffer::to_string() const
 	{
-		return std::format("Command buffer {} size", m_CommandBuffer.GetOriginalSize());
+		return std::format("Command buffer {} size", m_CommandBuffer.GetSize());
 	}
 
 }

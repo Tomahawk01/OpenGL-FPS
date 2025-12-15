@@ -1,33 +1,8 @@
 #include "MeshManager.h"
 
-#include "Utils/Log.h"
+#include "Utils.h"
 
 #include <ranges>
-
-namespace {
-
-	template<class T>
-	void ResizeGPUBuffer(const std::vector<T>& cpuBuffer, Game::Buffer& gpuBuffer, std::string_view name)
-	{
-		const auto bufferSizeBytes = cpuBuffer.size() * sizeof(T);
-		if (gpuBuffer.GetSize() <= bufferSizeBytes)
-		{
-			auto newSize = gpuBuffer.GetSize() * 2;
-			while (newSize < bufferSizeBytes)
-			{
-				newSize *= 2;
-			}
-
-			Game::Log::Info("Growing {} buffer {} -> {}", name, gpuBuffer.GetSize(), newSize);
-
-			// OpenGL barrier in case gpu using previous frame
-			glFinish();
-
-			gpuBuffer = Game::Buffer{ newSize, name };
-		}
-	}
-
-}
 
 namespace Game {
 

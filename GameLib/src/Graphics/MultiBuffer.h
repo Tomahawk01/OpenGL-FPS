@@ -1,26 +1,21 @@
 #pragma once
 
+#include "Utils.h"
 #include "Utils/DataBuffer.h"
 
 #include <string_view>
 
 namespace Game {
 
-	template<class T>
-	concept IsBuffer = requires(T t, DataBufferView data, size_t offset)
-	{
-		{ t.Write(data, offset) };
-	};
-
 	// @brief A multi buffer wrapper over a Buffer type.
 	// Will allocate size * Frames amount of data and can advance through the internal frames
-	template<IsBuffer Buffer, size_t Frames = size_t{ 3 } >
+	template<IsBuffer Buffer, size_t Frames = size_t{ 3 }>
 	class MultiBuffer
 	{
 	public:
 		MultiBuffer(size_t size, std::string_view name)
 			: m_Buffer{ size * Frames, name }
-			, m_OriginalSize{ size }
+			, m_Size{ size }
 			, m_FrameOffset{}
 		{}
 
@@ -31,7 +26,7 @@ namespace Game {
 
 		void Advance()
 		{
-			m_FrameOffset = (m_FrameOffset + m_OriginalSize) % (m_OriginalSize * Frames);
+			m_FrameOffset = (m_FrameOffset + m_Size) % (m_Size * Frames);
 		}
 
 		auto GetNativeHandle() const
@@ -44,9 +39,9 @@ namespace Game {
 			return m_Buffer;
 		}
 
-		size_t GetOriginalSize() const
+		size_t GetSize() const
 		{
-			return m_OriginalSize;
+			return m_Size;
 		}
 
 		size_t FrameOffsetBytes() const
@@ -56,7 +51,7 @@ namespace Game {
 
 	private:
 		Buffer m_Buffer;
-		size_t m_OriginalSize;
+		size_t m_Size;
 		size_t m_FrameOffset;
 	};
 
