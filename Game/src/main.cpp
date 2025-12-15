@@ -97,7 +97,7 @@ int main()
 	};
 
 	scene.entities.push_back(
-		{ meshManager.Load(Cube()) }
+		{ .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}} }
 	);
 
 	auto keyState = std::unordered_map<Game::Key, bool>{
