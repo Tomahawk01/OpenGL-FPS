@@ -21,6 +21,7 @@ project "Game"
         "%{wks.location}/GameLib/src",
 
         "%{wks.location}/vendor/OpenGL/include",
+        "%{wks.location}/vendor/stdext/include",
     }
 
     links

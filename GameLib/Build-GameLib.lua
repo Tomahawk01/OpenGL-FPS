@@ -20,6 +20,7 @@ project "GameLib"
         "src",
 
         "%{wks.location}/vendor/OpenGL/include",
+        "%{wks.location}/vendor/stdext/include",
     }
 
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
