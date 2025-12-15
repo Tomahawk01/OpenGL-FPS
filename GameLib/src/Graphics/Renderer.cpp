@@ -17,12 +17,17 @@ namespace {
 	struct VertexData
 	{
 		float position[3];
-		float color[3];
 	};
 
 	struct ObjectData
 	{
 		mat4 model;
+		uint material_index;
+	};
+
+	struct MaterialData
+	{
+		float color[3];
 	};
 
 	layout(binding = 0, std430) readonly buffer vertices
@@ -41,35 +46,77 @@ namespace {
 		ObjectData objectData[];
 	};
 
-	vec3 get_position(int index)
+	layout(binding = 3, std430) readonly buffer materials
+	{
+		MaterialData materialData[];
+	};
+
+	vec3 get_position(uint index)
 	{
 		return vec3(data[index].position[0], data[index].position[1], data[index].position[2]);
 	}
 
-	vec3 get_color(int index)
-	{
-		return vec3(data[index].color[0], data[index].color[1], data[index].color[2]);
-	}
-
-	layout(location = 0) out vec3 out_color;
+	layout(location = 0) out flat uint material_index;
 
 	void main()
 	{
 		gl_Position = projection * view * objectData[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
-		out_color = get_color(gl_VertexID);
+		material_index = objectData[gl_DrawID].material_index;
 	}
 	)"sv;
 
 	constexpr auto sampleFragmentShader = R"(
 	#version 460 core
 	
-	layout(location = 0) in vec3 in_color;
+	struct VertexData
+	{
+		float position[3];
+	};
+
+	struct ObjectData
+	{
+		mat4 model;
+		uint material_index;
+	};
+
+	struct MaterialData
+	{
+		float color[3];
+	};
+
+	layout(binding = 0, std430) readonly buffer vertices
+	{
+		VertexData data[];
+	};
+
+	layout(binding = 1, std430) readonly buffer camera
+	{
+		mat4 view;
+		mat4 projection;
+	};
+
+	layout(binding = 2, std430) readonly buffer objects
+	{
+		ObjectData objectData[];
+	};
+
+	layout(binding = 3, std430) readonly buffer materials
+	{
+		MaterialData materialData[];
+	};
+
+	vec3 get_color(uint index)
+	{
+		return vec3(materialData[index].color[0], materialData[index].color[1], materialData[index].color[2]);
+	}
+
+	layout(location = 0) in flat uint material_index;
 
 	layout(location = 0) out vec4 out_color;
 
 	void main()
 	{
-		out_color = vec4(in_color, 1.0);
+		out_color = vec4(get_color(material_index), 1.0);
 	}
 	)"sv;
 
@@ -109,17 +156,25 @@ namespace Game {
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_CommandBuffer.GetNativeHandle());
 
 		const auto objectData = scene.entities |
-			std::views::transform([](const auto& e) { return ObjectData{ .model = e.transform }; }) |
-			std::ranges::to<std::vector>();
+								std::views::transform([&scene](const auto& e)
+													  {
+														  const auto index = scene.materialManager.Index(e.materialKey);
+														  return ObjectData{ .model = e.transform, .materialIDIndex = index, .padding = {} };
+													  }) |
+								std::ranges::to<std::vector>();
 		ResizeGPUBuffer(objectData, m_ObjectDataBuffer, "object_data_buffer");
 		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ObjectDataBuffer.GetNativeHandle());
+
+		scene.materialManager.Sync();
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_CommandBuffer.Advance();
 		m_CameraBuffer.Advance();
 		m_ObjectDataBuffer.Advance();
+		scene.materialManager.Advance();
 	}
 
 }

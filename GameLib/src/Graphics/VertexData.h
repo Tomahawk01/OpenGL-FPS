@@ -8,9 +8,8 @@ namespace Game {
 	struct VertexData
 	{
 		vec3 position;
-		Color color;
 	};
 
-	static_assert(sizeof(VertexData) == sizeof(float) * 3 + sizeof(float) * 3);
+	static_assert(sizeof(VertexData) == sizeof(float) * 3);
 
 }

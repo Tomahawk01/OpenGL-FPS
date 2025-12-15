@@ -1,6 +1,7 @@
 #pragma once
 
-#include "MeshView.h"
+#include "Graphics/MeshView.h"
+#include "Graphics/MaterialManager.h"
 #include "Math/Transform.h"
 
 namespace Game {
@@ -9,6 +10,7 @@ namespace Game {
 	{
 		MeshView meshView;
 		Transform transform;
+		MaterialKey materialKey;
 	};
 
 }
