@@ -1,8 +1,9 @@
 #pragma once
 
+#include "Core/Camera.h"
 #include "Entity.h"
 #include "MeshManager.h"
-#include "Core/Camera.h"
+#include "MaterialManager.h"
 
 #include <vector>
 
@@ -12,6 +13,7 @@ namespace Game {
 	{
 		std::vector<Entity> entities;
 		MeshManager& meshManager;
+		MaterialManager& materialManager;
 		Camera camera;
 	};
 
