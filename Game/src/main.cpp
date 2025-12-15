@@ -3,7 +3,6 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Scene.h"
 #include "Graphics/CommandBuffer.h"
-#include "Graphics/MeshManager.h"
 #include "Graphics/Renderer.h"
 #include "Graphics/MeshData.h"
 #include "Utils/Formatter.h"
@@ -37,7 +36,7 @@ namespace {
 
 		return { .vertices = positions | std::views::transform([](const auto& e)
 												 {
-													 return Game::VertexData{.position = e, .color = Game::Colors::Azure };
+													 return Game::VertexData{ .position = e };
 												 }) | std::ranges::to<std::vector>(),
 				 .indices = std::move(indices)
 		};
@@ -64,6 +63,15 @@ namespace {
 			direction -= camera.Right();
 		}
 
+		if (keyState[Game::Key::Q])
+		{
+			direction += camera.Up();
+		}
+		if (keyState[Game::Key::E])
+		{
+			direction -= camera.Up();
+		}
+
 		constexpr auto speed = 0.5f;
 		return Game::vec3::Normalize(direction) * speed;
 	}
@@ -81,11 +89,18 @@ int main()
 	auto running = true;
 
 	auto meshManager = Game::MeshManager{};
+	auto materialManager = Game::MaterialManager{};
 	auto renderer = Game::Renderer{};
+
+	const auto materialKeyRed = materialManager.Add(Game::Color{ 1.0f, 0.0f, 0.0f });
+	const auto materialKeyBlue = materialManager.Add(Game::Color{ 0.0f, 0.0f, 1.0f });
+	const auto materialKeyGreen = materialManager.Add(Game::Color{ 0.0f, 1.0f, 0.0f });
+	materialManager.Remove(materialKeyBlue);
 
 	auto scene = Game::Scene{
 		.entities = {},
 		.meshManager = meshManager,
+		.materialManager = materialManager,
 		.camera = {
 			{},
 			{0.0f, 0.0f, -1.0f},
@@ -97,7 +112,11 @@ int main()
 	};
 
 	scene.entities.push_back(
-		{ .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}} }
+		{ .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyRed }
+	);
+
+	scene.entities.push_back(
+		{ .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyGreen }
 	);
 
 	auto keyState = std::unordered_map<Game::Key, bool>{
