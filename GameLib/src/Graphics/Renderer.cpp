@@ -1,6 +1,11 @@
 #include "Renderer.h"
 
+#include "ObjectData.h"
+#include "Utils.h"
+
 #include <string_view>
+#include <ranges>
+#include <span>
 
 using namespace std::literals;
 
@@ -15,6 +20,11 @@ namespace {
 		float color[3];
 	};
 
+	struct ObjectData
+	{
+		mat4 model;
+	};
+
 	layout(binding = 0, std430) readonly buffer vertices
 	{
 		VertexData data[];
@@ -24,6 +34,11 @@ namespace {
 	{
 		mat4 view;
 		mat4 projection;
+	};
+
+	layout(binding = 2, std430) readonly buffer objects
+	{
+		ObjectData objectData[];
 	};
 
 	vec3 get_position(int index)
@@ -40,7 +55,7 @@ namespace {
 
 	void main()
 	{
-		gl_Position = projection * view * vec4(get_position(gl_VertexID), 1.0);
+		gl_Position = projection * view * objectData[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
 		out_color = get_color(gl_VertexID);
 	}
 	)"sv;
@@ -73,6 +88,7 @@ namespace Game {
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{}
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
+		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
 		, m_Program{ CreateProgram() }
 	{
 		glGenVertexArrays(1, &m_DummyVAO);
@@ -90,13 +106,20 @@ namespace Game {
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferHandle);
 
 		const auto commandCount = m_CommandBuffer.Build(scene);
-
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_CommandBuffer.GetNativeHandle());
+
+		const auto objectData = scene.entities |
+			std::views::transform([](const auto& e) { return ObjectData{ .model = e.transform }; }) |
+			std::ranges::to<std::vector>();
+		ResizeGPUBuffer(objectData, m_ObjectDataBuffer, "object_data_buffer");
+		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ObjectDataBuffer.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_CommandBuffer.Advance();
 		m_CameraBuffer.Advance();
+		m_ObjectDataBuffer.Advance();
 	}
 
 }
