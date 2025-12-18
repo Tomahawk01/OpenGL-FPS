@@ -69,6 +69,14 @@ namespace Game {
 			return key;
 		}
 
+		MaterialData& operator[](MaterialKey key)
+		{
+			const auto element = m_MaterialDataCPU.find(key);
+			Expect(element != std::ranges::cend(m_MaterialDataCPU), "Key {} does not exist", key);
+
+			return element->second;
+		}
+
 		void Remove(MaterialKey key)
 		{
 			m_MaterialDataCPU.erase(key);
