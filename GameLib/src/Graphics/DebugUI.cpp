@@ -1,11 +1,15 @@
 #include "DebugUI.h"
 
+#include "Math/Matrix4.h"
+
 #include <string>
 #include <format>
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include <imgui.h>
+#include <ImGuizmo.cpp>
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_win32.h>
-#include <imgui.h>
 
 namespace Game {
 
@@ -42,9 +46,14 @@ namespace Game {
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
+		ImGuizmo::SetOrthographic(false);
+		ImGuizmo::BeginFrame();
+		ImGuizmo::Enable(true);
+		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
 		ImGui::LabelText("FPS", "%0.1f", io.Framerate);
 
-		for (const auto& entity : scene.entities)
+		for (auto& entity : scene.entities)
 		{
 			auto& material = scene.materialManager[entity.materialKey];
 
@@ -59,6 +68,22 @@ namespace Game {
 				{
 					std::memcpy(&material.color, color, sizeof(color));
 				}
+
+				auto transform = mat4{ entity.transform };
+				const auto& cameraData = scene.camera.GetData();
+
+				ImGuizmo::Manipulate(
+					cameraData.view.Data().data(),
+					cameraData.projection.Data().data(),
+					ImGuizmo::TRANSLATE | ImGuizmo::SCALE | ImGuizmo::BOUNDS | ImGuizmo::ROTATE,
+					ImGuizmo::WORLD,
+					const_cast<float*>(transform.Data().data()),
+					nullptr,
+					nullptr,
+					nullptr,
+					nullptr);
+
+				entity.transform = transform;
 			}
 		}
 
