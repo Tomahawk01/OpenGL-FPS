@@ -1,5 +1,8 @@
 #include "DebugUI.h"
 
+#include <string>
+#include <format>
+
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_win32.h>
 #include <imgui.h>
@@ -33,11 +36,31 @@ namespace Game {
 
 	void DebugUI::Render(Scene& scene) const
 	{
+		auto& io = ImGui::GetIO();
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplWin32_NewFrame();
 		ImGui::NewFrame();
 
-		ImGui::ShowDemoWindow();
+		ImGui::LabelText("FPS", "%0.1f", io.Framerate);
+
+		for (const auto& entity : scene.entities)
+		{
+			auto& material = scene.materialManager[entity.materialKey];
+
+			if (ImGui::CollapsingHeader(entity.name.c_str()))
+			{
+				float color[3]{};
+				std::memcpy(color, &material.color, sizeof(color));
+
+				const auto label = std::format("{} color", entity.name);
+
+				if (ImGui::ColorPicker3(label.c_str(), color))
+				{
+					std::memcpy(&material.color, color, sizeof(color));
+				}
+			}
+		}
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
