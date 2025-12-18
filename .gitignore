@@ -12,3 +12,4 @@ bin-int/
 # Game files
 **/log
 **/config.h
+imgui.ini

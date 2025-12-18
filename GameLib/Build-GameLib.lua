@@ -21,6 +21,17 @@ project "GameLib"
 
         "%{wks.location}/vendor/OpenGL/include",
         "%{wks.location}/vendor/stdext/include",
+        "%{wks.location}/vendor/ImGui/include",
+    }
+
+    libdirs
+    {
+        "%{wks.location}/vendor/ImGui/lib",
+    }
+
+    links
+    {
+        "ImGui"
     }
 
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
@@ -31,8 +42,9 @@ project "GameLib"
         defines { "WINDOWS" }
         links
         {
+            "OpenGL32",
             "wbemuuid",
-            "OpenGL32"
+            "dwmapi"
         }
 
     filter "configurations:Debug"
