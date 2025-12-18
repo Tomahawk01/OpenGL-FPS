@@ -2,9 +2,9 @@
 #include "Graphics/Window.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Scene.h"
-#include "Graphics/CommandBuffer.h"
 #include "Graphics/Renderer.h"
 #include "Graphics/MeshData.h"
+#include "Graphics/DebugUI.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -91,6 +91,8 @@ int main()
 	auto meshManager = Game::MeshManager{};
 	auto materialManager = Game::MaterialManager{};
 	auto renderer = Game::Renderer{};
+	auto debugUI = Game::DebugUI{ window };
+	auto debugMode = false;
 
 	const auto materialKeyRed = materialManager.Add(Game::Color{ 1.0f, 0.0f, 0.0f });
 	const auto materialKeyBlue = materialManager.Add(Game::Color{ 0.0f, 0.0f, 1.0f });
@@ -145,6 +147,10 @@ int main()
 							Game::Log::Info("Stopping...");
 							running = false;
 						}
+						if (arg == Game::KeyEvent{ Game::Key::F1, Game::KeyState::DOWN })
+						{
+							debugMode = !debugMode;
+						}
 						else
 						{
 							keyState[arg.GetKey()] = arg.GetState() == Game::KeyState::DOWN;
@@ -152,11 +158,18 @@ int main()
 					}
 					else if constexpr (std::same_as<T, Game::MouseEvent>)
 					{
-						static constexpr auto sensitivity = 0.002f;
-						const auto deltaX = arg.GetDeltaX() * sensitivity;
-						const auto deltaY = arg.GetDeltaY() * sensitivity;
-						scene.camera.AddYaw(deltaX);
-						scene.camera.AddPitch(-deltaY);
+						if (!debugMode)
+						{
+							static constexpr auto sensitivity = 0.002f;
+							const auto deltaX = arg.GetDeltaX() * sensitivity;
+							const auto deltaY = arg.GetDeltaY() * sensitivity;
+							scene.camera.AddYaw(deltaX);
+							scene.camera.AddPitch(-deltaY);
+						}
+					}
+					else if constexpr (std::same_as<T, Game::MouseButtonEvent>)
+					{
+						debugUI.AddMouseEvent(arg);
 					}
 				}, *event
 			);
@@ -167,6 +180,10 @@ int main()
 		scene.camera.Translate(WalkDirection(keyState, scene.camera));
 
 		renderer.Render(scene);
+		if (debugMode)
+		{
+			debugUI.Render(scene);
+		}
 
 		window.Swap();
 	}
