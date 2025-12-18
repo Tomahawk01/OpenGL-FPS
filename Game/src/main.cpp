@@ -114,11 +114,11 @@ int main()
 	};
 
 	scene.entities.push_back(
-		{ .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyRed }
+		{ .name = "cube1", .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyRed }
 	);
 
 	scene.entities.push_back(
-		{ .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyGreen }
+		{ .name = "cube2", .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyGreen }
 	);
 
 	auto keyState = std::unordered_map<Game::Key, bool>{
