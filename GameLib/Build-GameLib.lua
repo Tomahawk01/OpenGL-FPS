@@ -31,6 +31,7 @@ project "GameLib"
 
     links
     {
+        "OpenGL32",
         "ImGui"
     }
 
@@ -42,9 +43,7 @@ project "GameLib"
         defines { "WINDOWS" }
         links
         {
-            "OpenGL32",
-            "wbemuuid",
-            "dwmapi"
+            "wbemuuid"
         }
 
     filter "configurations:Debug"
