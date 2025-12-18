@@ -1,6 +1,7 @@
 #include "DebugUI.h"
 
 #include "Math/Matrix4.h"
+#include "Utils/Log.h"
 
 #include <string>
 #include <format>
@@ -38,7 +39,7 @@ namespace Game {
 		ImGui::DestroyContext();
 	}
 
-	void DebugUI::Render(Scene& scene) const
+	void DebugUI::Render(Scene& scene)
 	{
 		auto& io = ImGui::GetIO();
 
@@ -89,12 +90,24 @@ namespace Game {
 
 		ImGui::Render();
 		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		if (m_Click)
+		{
+			uint8_t buffer[4]{};
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glReadBuffer(GL_BACK);
+			glReadPixels(static_cast<GLint>(m_Click->GetX()), static_cast<GLint>(m_Click->GetY()), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+			Log::Trace("r:{:x}, g:{:x}, b:{:x}", buffer[0], buffer[1], buffer[2]);
+			m_Click.reset();
+		}
 	}
 
-	void DebugUI::AddMouseEvent(const MouseButtonEvent& evt) const
+	void DebugUI::AddMouseEvent(const MouseButtonEvent& evt)
 	{
 		auto& io = ImGui::GetIO();
 		io.AddMouseButtonEvent(0, evt.GetState() == MouseButtonState::DOWN);
+
+		m_Click = evt;
 	}
 
 }

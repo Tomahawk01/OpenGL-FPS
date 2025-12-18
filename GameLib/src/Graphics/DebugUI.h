@@ -4,6 +4,8 @@
 #include "Scene.h"
 #include "Window.h"
 
+#include <optional>
+
 namespace Game {
 
 	class DebugUI
@@ -12,12 +14,13 @@ namespace Game {
 		DebugUI(const Window& window);
 		~DebugUI();
 
-		void Render(Scene& scene) const;
+		void Render(Scene& scene);
 
-		void AddMouseEvent(const MouseButtonEvent& evt) const;
+		void AddMouseEvent(const MouseButtonEvent& evt);
 
 	private:
 		const Window& m_Window;
+		std::optional<MouseButtonEvent> m_Click;
 	};
 
 }
