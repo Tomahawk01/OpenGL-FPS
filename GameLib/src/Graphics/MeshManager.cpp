@@ -30,9 +30,9 @@ namespace Game {
 
 		return {
 			.indexOffset = static_cast<uint32_t>(indexOffset),
-			.indexCount = static_cast<uint32_t>(meshData.indices.size()),
+			.indices = std::span<std::uint32_t>{m_IndexDataCPU.data() + indexOffset, meshData.indices.size()},
 			.vertexOffset = static_cast<uint32_t>(vertexOffset),
-			.vertexCount = static_cast<uint32_t>(meshData.vertices.size())
+			.vertices = std::span<VertexData>{m_VertexDataCPU.data() + vertexOffset, meshData.vertices.size()},
 		};
 	}
 

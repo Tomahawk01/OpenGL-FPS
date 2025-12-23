@@ -33,7 +33,7 @@ namespace Game {
 			[&base](const auto& e)
 			{
 				const auto cmd = IndirectCommand{
-					.count = e.meshView.indexCount,
+					.count = static_cast<uint32_t>(std::ranges::size(e.meshView.indices)),
 					.instanceCount = 1u,
 					.first = e.meshView.indexOffset,
 					.baseVertex = base,
