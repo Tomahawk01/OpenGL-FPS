@@ -14,7 +14,7 @@
 
 namespace Game {
 
-	struct IntersctionResult
+	struct IntersectionResult
 	{
 		const Entity* entity;
 		vec3 position;
@@ -22,30 +22,33 @@ namespace Game {
 
 	struct Scene
 	{
-		constexpr std::optional<IntersctionResult> IntersectRay(const Ray& ray) const
+		constexpr std::optional<IntersectionResult> IntersectRay(const Ray& ray) const
 		{
-			auto result = std::optional<IntersctionResult>{};
-			auto min_distance = std::numeric_limits<float>::max();
+			auto result = std::optional<IntersectionResult>{};
+			auto minDistance = std::numeric_limits<float>::max();
 
 			for (const auto& entity : entities)
 			{
-				const auto inv_transform = mat4::Invert(entity.transform);
-				const auto transformed_ray = Ray{ inv_transform * vec4{ray.origin, 1.0f}, inv_transform * vec4{ray.direction, 0.0f} };
+				const auto invTransform = mat4::Invert(entity.transform);
+				const auto transformedRay = Ray{ invTransform * vec4{ray.origin, 1.0f}, invTransform * vec4{ray.direction, 0.0f} };
 
-				for (const auto& indices : std::views::chunk(entity.meshView.indices, 3))
+				const auto indices = meshManager.GetIndexData(entity.meshView);
+				const auto vertices = meshManager.GetVertexData(entity.meshView);
+
+				for (const auto& indices : std::views::chunk(indices, 3))
 				{
-					const auto v0 = entity.meshView.vertices[indices[0]].position;
-					const auto v1 = entity.meshView.vertices[indices[1]].position;
-					const auto v2 = entity.meshView.vertices[indices[2]].position;
+					const auto v0 = vertices[indices[0]].position;
+					const auto v1 = vertices[indices[1]].position;
+					const auto v2 = vertices[indices[2]].position;
 
-					if (const auto distance = Intersect(transformed_ray, v0, v1, v2); distance)
+					if (const auto distance = Intersect(transformedRay, v0, v1, v2); distance)
 					{
-						const auto intersection_point = transformed_ray.origin + transformed_ray.direction * (*distance);
+						const auto intersectionPoint = transformedRay.origin + transformedRay.direction * (*distance);
 
-						if (!result && (*distance < min_distance))
+						if (*distance < minDistance)
 						{
-							result = IntersctionResult{ .entity = &entity, .position = intersection_point };
-							min_distance = *distance;
+							result = IntersectionResult{ .entity = &entity, .position = intersectionPoint };
+							minDistance = *distance;
 						}
 					}
 				}

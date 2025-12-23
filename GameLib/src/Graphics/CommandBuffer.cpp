@@ -33,11 +33,12 @@ namespace Game {
 			[&base](const auto& e)
 			{
 				const auto cmd = IndirectCommand{
-					.count = static_cast<uint32_t>(std::ranges::size(e.meshView.indices)),
+					.count = e.meshView.indexCount,
 					.instanceCount = 1u,
 					.first = e.meshView.indexOffset,
 					.baseVertex = base,
-					.baseInstance = 0u };
+					.baseInstance = 0u
+				};
 				base += e.meshView.vertexOffset;
 				return cmd;
 			}) | std::ranges::to<std::vector>();

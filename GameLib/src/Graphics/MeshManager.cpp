@@ -30,15 +30,25 @@ namespace Game {
 
 		return {
 			.indexOffset = static_cast<uint32_t>(indexOffset),
-			.indices = std::span<std::uint32_t>{m_IndexDataCPU.data() + indexOffset, meshData.indices.size()},
+			.indexCount = static_cast<uint32_t>(meshData.indices.size()),
 			.vertexOffset = static_cast<uint32_t>(vertexOffset),
-			.vertices = std::span<VertexData>{m_VertexDataCPU.data() + vertexOffset, meshData.vertices.size()},
+			.vertexCount = static_cast<uint32_t>(meshData.vertices.size()),
 		};
 	}
 
 	std::tuple<GLuint, GLuint> MeshManager::GetNativeHandle() const
 	{
 		return { m_VertexDataGPU.GetNativeHandle(), m_IndexDataGPU.GetNativeHandle() };
+	}
+
+	std::span<uint32_t> MeshManager::GetIndexData(MeshView view)
+	{
+		return { m_IndexDataCPU.data() + view.indexOffset, view.indexCount };
+	}
+
+	std::span<VertexData> MeshManager::GetVertexData(MeshView view)
+	{
+		return { m_VertexDataCPU.data() + view.vertexOffset, view.vertexCount };
 	}
 
 	std::string MeshManager::to_string() const

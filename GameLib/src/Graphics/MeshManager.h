@@ -6,6 +6,7 @@
 #include "MeshData.h"
 
 #include <vector>
+#include <span>
 #include <string>
 
 namespace Game {
@@ -18,6 +19,9 @@ namespace Game {
 		MeshView Load(const MeshData& meshData);
 
 		std::tuple<GLuint, GLuint> GetNativeHandle() const;
+
+		std::span<uint32_t> GetIndexData(MeshView view);
+		std::span<VertexData> GetVertexData(MeshView view);
 
 		std::string to_string() const;
 

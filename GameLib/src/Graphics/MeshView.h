@@ -10,9 +10,9 @@ namespace Game {
 	struct MeshView
 	{
 		uint32_t indexOffset;
-		std::span<uint32_t> indices;
+		uint32_t indexCount;
 		uint32_t vertexOffset;
-		std::span<VertexData> vertices;
+		uint32_t vertexCount;
 	};
 
 }
