@@ -1,6 +1,8 @@
 #include "DebugUI.h"
 
+#include "Math/Ray.h"
 #include "Math/Matrix4.h"
+#include "Math/Vector4.h"
 #include "Utils/Log.h"
 
 #include <string>
@@ -12,10 +14,35 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <backends/imgui_impl_win32.h>
 
+namespace {
+
+	Game::Ray ScreenRay(const Game::MouseButtonEvent& evt, const Game::Window& window, const Game::Camera& camera)
+	{
+		const auto x = 2.0f * evt.GetX() / window.GetRenderWidth() - 1.0f;
+		const auto y = 1.0f - 2.0f * evt.GetY() / window.GetRenderHeight();
+		const auto rayClip = Game::vec4{ x, y, -1.0f, 1.0f };
+
+		const auto invProj = Game::mat4::Invert(camera.GetData().projection);
+		auto rayEye = invProj * rayClip;
+		rayEye.z = -1.0f;
+		rayEye.w = 0.0f;
+		//rayEye = Game::vec4{ rayEye.x, rayEye.y, -1.0f, 0.0f };
+
+		const auto invView = Game::mat4::Invert(camera.GetData().view);
+		const auto dirWS = Game::vec3::Normalize(invView * rayEye);
+		const auto originWS = Game::vec3{ invView[12], invView[13], invView[14] };
+
+		return { originWS, dirWS };
+	}
+
+}
+
 namespace Game {
 
 	DebugUI::DebugUI(const Window& window)
 		: m_Window{ window }
+		, m_Click{}
+		, m_SelectedEntity{}
 	{
 		IMGUI_CHECKVERSION();
 		ImGui::CreateContext();
@@ -69,7 +96,10 @@ namespace Game {
 				{
 					std::memcpy(&material.color, color, sizeof(color));
 				}
+			}
 
+			if (&entity == m_SelectedEntity)
+			{
 				auto transform = mat4{ entity.transform };
 				const auto& cameraData = scene.camera.GetData();
 
@@ -93,11 +123,10 @@ namespace Game {
 
 		if (m_Click)
 		{
-			uint8_t buffer[4]{};
-			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-			glReadBuffer(GL_BACK);
-			glReadPixels(static_cast<GLint>(m_Click->GetX()), static_cast<GLint>(m_Click->GetY()), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-			Log::Trace("r:{:x}, g:{:x}, b:{:x}", buffer[0], buffer[1], buffer[2]);
+			const auto pickRay = ScreenRay(*m_Click, m_Window, scene.camera);
+			const auto intersection = scene.IntersectRay(pickRay);
+			m_SelectedEntity = intersection.transform([](const auto& e) { return e.entity; }).value_or(nullptr);
+
 			m_Click.reset();
 		}
 	}
@@ -107,7 +136,10 @@ namespace Game {
 		auto& io = ImGui::GetIO();
 		io.AddMouseButtonEvent(0, evt.GetState() == MouseButtonState::DOWN);
 
-		m_Click = evt;
+		if (!io.WantCaptureMouse)
+		{
+			m_Click = evt;
+		}
 	}
 
 }

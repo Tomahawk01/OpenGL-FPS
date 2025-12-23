@@ -21,6 +21,7 @@ namespace Game {
 	private:
 		const Window& m_Window;
 		std::optional<MouseButtonEvent> m_Click;
+		const Entity* m_SelectedEntity;
 	};
 
 }
