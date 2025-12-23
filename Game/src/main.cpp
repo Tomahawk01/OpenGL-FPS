@@ -1,7 +1,7 @@
 #include "config.h"
+#include "Core/Scene.h"
 #include "Graphics/Window.h"
 #include "Graphics/Shader.h"
-#include "Graphics/Scene.h"
 #include "Graphics/Renderer.h"
 #include "Graphics/MeshData.h"
 #include "Graphics/DebugUI.h"

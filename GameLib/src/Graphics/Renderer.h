@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CommandBuffer.h"
-#include "Scene.h"
+#include "Core/Scene.h"
 #include "Program.h"
 #include "OpenGL.h"
 #include "Utils/AutoRelease.h"

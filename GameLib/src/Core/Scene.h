@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Core/Camera.h"
-#include "Entity.h"
-#include "MeshManager.h"
-#include "MaterialManager.h"
+#include "Core/Entity.h"
+#include "Graphics/MeshManager.h"
+#include "Graphics/MaterialManager.h"
 
 #include <vector>
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Events/MouseButtonEvent.h"
-#include "Scene.h"
+#include "Core/Scene.h"
 #include "Window.h"
 
 #include <optional>

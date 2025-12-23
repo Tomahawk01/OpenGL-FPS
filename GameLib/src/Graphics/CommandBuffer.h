@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Scene.h"
+#include "Core/Scene.h"
 #include "MultiBuffer.h"
 #include "PersistentBuffer.h"
 #include "OpenGL.h"
