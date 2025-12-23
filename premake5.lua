@@ -3,7 +3,7 @@ dofile("scripts/utils.lua")
 configure_file("scripts/config.h.in", "GameLib/src/config.h", {
     OpenGL_FPS_VERSION_MAJOR = "0",
     OpenGL_FPS_VERSION_MINOR = "0",
-    OpenGL_FPS_VERSION_PATCH = "15"
+    OpenGL_FPS_VERSION_PATCH = "16"
 })
 
 workspace "OpenGL_FPS"
