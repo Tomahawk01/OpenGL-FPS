@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Vector3.h"
+#include "Vector4.h"
 #include "Quaternion.h"
 #include "Utils/Error.h"
 
@@ -96,10 +97,11 @@ namespace Game {
 		}
 
 		friend constexpr mat4& operator*=(mat4& m1, const mat4& m2);
+		friend constexpr vec4 operator*(const mat4& m1, const vec4& v);
 
 		constexpr bool operator==(const mat4&) const = default;
 
-		std::string to_string() const;
+		inline std::string to_string() const;
 
 	private:
 		std::array<float, 16u> m_Elements;
@@ -239,6 +241,18 @@ namespace Game {
 		{
 			x *= det;
 		}
+
+		return result;
+	}
+
+	constexpr vec4 operator*(const mat4& m1, const vec4& v)
+	{
+		auto result = vec4{};
+
+		result.x = m1.m_Elements[0] * v.x + m1.m_Elements[4] * v.y + m1.m_Elements[8] * v.z + m1.m_Elements[12] * v.w;
+		result.y = m1.m_Elements[1] * v.x + m1.m_Elements[5] * v.y + m1.m_Elements[9] * v.z + m1.m_Elements[13] * v.w;
+		result.z = m1.m_Elements[2] * v.x + m1.m_Elements[6] * v.y + m1.m_Elements[10] * v.z + m1.m_Elements[14] * v.w;
+		result.w = m1.m_Elements[3] * v.x + m1.m_Elements[7] * v.y + m1.m_Elements[11] * v.z + m1.m_Elements[15] * v.w;
 
 		return result;
 	}

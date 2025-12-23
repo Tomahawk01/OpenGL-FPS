@@ -30,7 +30,7 @@ namespace Game {
 
 		constexpr bool operator==(const vec4&) const = default;
 
-		constexpr std::string to_string() const;
+		inline std::string to_string() const;
 
 		float x;
 		float y;
@@ -43,7 +43,7 @@ namespace Game {
 		return vec3{ x, y, z };
 	}
 
-	constexpr std::string vec4::to_string() const
+	inline std::string vec4::to_string() const
 	{
 		return std::format("x={} y={} z={} w={}", x, y, z, w);
 	}
