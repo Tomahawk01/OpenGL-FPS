@@ -7,9 +7,13 @@
 #include <fstream>
 #include <print>
 #include <source_location>
+#include <string>
 #include <string_view>
+#include <vector>
 
 namespace Game::Log {
+
+	inline std::vector<std::string> history{};
 
 	namespace Impl {
 
@@ -58,7 +62,7 @@ namespace Game::Log {
 
 			const std::filesystem::path path{ loc.file_name() };
 
-			const auto logLine = std::format("[{}] {}:{} {}", c, path.filename().string(), loc.line(), std::format(msg, std::forward<Args>(args)...));
+			auto logLine = std::format("[{}] {}:{} {}", c, path.filename().string(), loc.line(), std::format(msg, std::forward<Args>(args)...));
 
 			std::println("{}", logLine);
 
@@ -66,6 +70,8 @@ namespace Game::Log {
 			{
 				Impl::logFile << logLine << std::endl;
 			}
+
+			history.push_back(std::move(logLine));
 		}
 	};
 
