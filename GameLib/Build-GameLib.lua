@@ -23,6 +23,7 @@ project "GameLib"
         "%{wks.location}/vendor/stdext/include",
         "%{wks.location}/vendor/ImGui/include",
         "%{wks.location}/vendor/ImGuizmo",
+        "%{wks.location}/vendor/stb",
     }
 
     libdirs
