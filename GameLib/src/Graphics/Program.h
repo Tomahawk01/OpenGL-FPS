@@ -15,6 +15,8 @@ namespace Game {
 
 		void Use() const;
 
+		GLuint GetNativeHandle() const;
+
 	private:
 		AutoRelease<GLuint> m_Handle;
 	};

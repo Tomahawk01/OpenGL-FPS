@@ -45,4 +45,9 @@ namespace Game {
 		glUseProgram(m_Handle);
 	}
 
+	GLuint Program::GetNativeHandle() const
+	{
+		return m_Handle;
+	}
+
 }
