@@ -17,6 +17,7 @@ namespace {
 	struct VertexData
 	{
 		float position[3];
+		float uv[2];
 	};
 
 	struct ObjectData
@@ -56,21 +57,30 @@ namespace {
 		return vec3(data[index].position[0], data[index].position[1], data[index].position[2]);
 	}
 
+	vec2 get_uv(uint index)
+	{
+		return vec2(data[index].uv[0], data[index].uv[1]);
+	}
+
 	layout(location = 0) out flat uint material_index;
+	layout(location = 1) out vec2 uv;
 
 	void main()
 	{
 		gl_Position = projection * view * objectData[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
 		material_index = objectData[gl_DrawID].material_index;
+		uv = get_uv(gl_VertexID);
 	}
 	)"sv;
 
 	constexpr auto sampleFragmentShader = R"(
 	#version 460 core
+	#extension GL_ARB_bindless_texture : require
 	
 	struct VertexData
 	{
 		float position[3];
+		float uv[2];
 	};
 
 	struct ObjectData
@@ -110,13 +120,16 @@ namespace {
 		return vec3(materialData[index].color[0], materialData[index].color[1], materialData[index].color[2]);
 	}
 
+	layout(location = 0, bindless_sampler) uniform sampler2D tex;
+
 	layout(location = 0) in flat uint material_index;
+	layout(location = 1) in vec2 uv;
 
 	layout(location = 0) out vec4 out_color;
 
 	void main()
 	{
-		out_color = vec4(get_color(material_index), 1.0);
+		out_color = vec4(get_color(material_index) * texture(tex, uv).rgb, 1.0);
 	}
 	)"sv;
 
@@ -168,6 +181,8 @@ namespace Game {
 
 		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
+
+		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 0, scene.theOneTexture.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 

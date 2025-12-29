@@ -4,6 +4,7 @@
 #include "Core/Entity.h"
 #include "Graphics/MeshManager.h"
 #include "Graphics/MaterialManager.h"
+#include "Graphics/Texture.h"
 #include "Math/Utils.h"
 #include "Math/Ray.h"
 #include "Math/Vector4.h"
@@ -61,6 +62,7 @@ namespace Game {
 		MeshManager& meshManager;
 		MaterialManager& materialManager;
 		Camera camera;
+		const Texture& theOneTexture;
 	};
 
 }
