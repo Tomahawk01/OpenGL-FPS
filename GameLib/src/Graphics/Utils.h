@@ -1,7 +1,9 @@
 #pragma once
 
+#include "TextureData.h"
 #include "Utils/DataBuffer.h"
 #include "Utils/Log.h"
+#include "OpenGL.h"
 
 #include <vector>
 #include <string_view>
@@ -34,5 +36,7 @@ namespace Game {
 			gpuBuffer = Buffer{ newSize, name };
 		}
 	}
+
+	TextureData LoadTexture(DataBufferView imageData);
 
 }
