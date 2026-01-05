@@ -17,6 +17,7 @@ namespace {
 	struct VertexData
 	{
 		float position[3];
+		float normal[3];
 		float uv[2];
 	};
 
@@ -52,9 +53,21 @@ namespace {
 		MaterialData materialData[];
 	};
 
+	layout(binding = 4, std430) readonly buffer lights
+	{
+		float pointLightPos[3];
+		float pointLightColor[3];
+		float pointLightAttenuation[3];
+	};
+
 	vec3 get_position(uint index)
 	{
 		return vec3(data[index].position[0], data[index].position[1], data[index].position[2]);
+	}
+
+	vec3 get_normal(uint index)
+	{
+		return vec3(data[index].normal[0], data[index].normal[1], data[index].normal[2]);
 	}
 
 	vec2 get_uv(uint index)
@@ -62,14 +75,18 @@ namespace {
 		return vec2(data[index].uv[0], data[index].uv[1]);
 	}
 
-	layout(location = 0) out flat uint material_index;
-	layout(location = 1) out vec2 uv;
+	layout(location = 0) out flat uint out_material_index;
+	layout(location = 1) out vec2 out_uv;
+	layout(location = 2) out vec3 out_normal;
+	layout(location = 3) out vec4 out_frag_position;
 
 	void main()
 	{
-		gl_Position = projection * view * objectData[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
-		material_index = objectData[gl_DrawID].material_index;
-		uv = get_uv(gl_VertexID);
+		out_frag_position = objectData[gl_DrawID].model * vec4(get_position(gl_VertexID), 1.0);
+		gl_Position = projection * view * out_frag_position;
+		out_material_index = objectData[gl_DrawID].material_index;
+		out_uv = get_uv(gl_VertexID);
+		out_normal = get_normal(gl_VertexID);
 	}
 	)"sv;
 
@@ -80,6 +97,7 @@ namespace {
 	struct VertexData
 	{
 		float position[3];
+		float normal[3];
 		float uv[2];
 	};
 
@@ -115,21 +133,45 @@ namespace {
 		MaterialData materialData[];
 	};
 
+	layout(binding = 4, std430) readonly buffer lights
+	{
+		float pointLightPos[3];
+		float pointLightColor[3];
+		float pointLightAttenuation[3];
+	};
+
 	vec3 get_color(uint index)
 	{
 		return vec3(materialData[index].color[0], materialData[index].color[1], materialData[index].color[2]);
 	}
 
+	vec3 calc_point(vec3 fragPosition, vec3 n)
+	{
+		vec3 pos = vec3(pointLightPos[0], pointLightPos[1], pointLightPos[2]);
+		vec3 color = vec3(pointLightColor[0], pointLightColor[1], pointLightColor[2]);
+		vec3 attenuation = vec3(pointLightAttenuation[0], pointLightAttenuation[1], pointLightAttenuation[2]);
+
+		float distance = length(pos - fragPosition);
+		float att = 1.0 / (attenuation.x + (attenuation.y * distance) + (attenuation.z * (distance * distance)));
+
+		vec3 lightDir = normalize(pos - fragPosition);
+		float diff = max(dot(n, lightDir), 0.0);
+
+		return diff * att * color;
+	}
+
 	layout(location = 0, bindless_sampler) uniform sampler2D tex;
 
-	layout(location = 0) in flat uint material_index;
-	layout(location = 1) in vec2 uv;
+	layout(location = 0) in flat uint in_material_index;
+	layout(location = 1) in vec2 in_uv;
+	layout(location = 2) in vec3 in_normal;
+	layout(location = 3) in vec4 in_frag_position;
 
 	layout(location = 0) out vec4 out_color;
 
 	void main()
 	{
-		out_color = vec4(get_color(material_index) * texture(tex, uv).rgb, 1.0);
+		out_color = vec4(calc_point(in_frag_position.xyz, in_normal), 1.0);
 	}
 	)"sv;
 
@@ -148,6 +190,7 @@ namespace Game {
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{}
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
+		, m_LightBuffer{ sizeof(PointLight), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
 		, m_Program{ CreateProgram() }
 	{
@@ -160,6 +203,7 @@ namespace Game {
 	void Renderer::Render(const Scene& scene)
 	{
 		m_CameraBuffer.Write(scene.camera.GetDataView(), 0);
+
 		const auto [vertexBufferHandle, indexBufferHandle] = scene.meshManager.GetNativeHandle();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBufferHandle);
 		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 1, m_CameraBuffer.GetNativeHandle(), m_CameraBuffer.FrameOffsetBytes(), sizeof(CameraData));
@@ -182,12 +226,16 @@ namespace Game {
 		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
+		m_LightBuffer.Write(std::as_bytes(std::span<const PointLight, 1>{&scene.light, 1}), 0);
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_LightBuffer.GetNativeHandle());
+
 		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 0, scene.theOneTexture.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_CommandBuffer.Advance();
 		m_CameraBuffer.Advance();
+		m_LightBuffer.Advance();
 		m_ObjectDataBuffer.Advance();
 		scene.materialManager.Advance();
 	}

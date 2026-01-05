@@ -35,6 +35,17 @@ namespace {
 			{-1.0f, -1.0f, 1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, 1.0f}
 		};
 
+		const Game::vec3 normals[] = {
+			{0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f, 1.0f},  {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
+			{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {-1.0f, 0.0f, 0.0f},
+			{-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f},  {1.0f, 0.0f, 0.0f},  {1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f},  {0.0f, 1.0f, 0.0f},  {0.0f, -1.0f, 0.0f},
+			{0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}
+		};
+
 		const Game::UV uvs[] = {
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
@@ -50,7 +61,7 @@ namespace {
 			20, 21, 22, 22, 23, 20
 		};
 
-		return { .vertices = Vertices(positions, uvs),
+		return { .vertices = Vertices(positions, normals, uvs),
 				 .indices = std::move(indices)
 		};
 	}
@@ -130,7 +141,14 @@ int main()
 			static_cast<float>(window.GetRenderWidth()), static_cast<float>(window.GetRenderHeight()),
 			0.1f, 1000.0f
 		},
-		.theOneTexture = diamondFloorTexture
+		.theOneTexture = diamondFloorTexture,
+		.light = {
+			.position = {},
+			.color = { 1.0f, 1.0f, 1.0f },
+			.constantAttenuation = 1.0f,
+			.linearAttenuation = 0.007f,
+			.quadraticAttenuation = 0.0002f
+		}
 	};
 
 	scene.entities.push_back(

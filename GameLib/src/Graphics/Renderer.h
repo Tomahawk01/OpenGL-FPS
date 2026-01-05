@@ -19,6 +19,7 @@ namespace Game {
 		AutoRelease<GLuint> m_DummyVAO;
 		CommandBuffer m_CommandBuffer;
 		MultiBuffer<PersistentBuffer> m_CameraBuffer;
+		MultiBuffer<PersistentBuffer> m_LightBuffer;
 		MultiBuffer<PersistentBuffer> m_ObjectDataBuffer;
 		Program m_Program;
 	};
