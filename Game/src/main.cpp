@@ -46,6 +46,28 @@ namespace {
 			{0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}
 		};
 
+		const Game::vec3 tangents[] = {
+			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
+			{-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
+			{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
+			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}
+		};
+
+		const Game::vec3 bitangents[] = {
+			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
+			{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
+			{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f},
+			{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
+		};
+
 		const Game::UV uvs[] = {
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
@@ -61,7 +83,7 @@ namespace {
 			20, 21, 22, 22, 23, 20
 		};
 
-		return { .vertices = Vertices(positions, normals, uvs),
+		return { .vertices = Vertices(positions, normals, tangents, bitangents, uvs),
 				 .indices = std::move(indices)
 		};
 	}
@@ -116,7 +138,11 @@ int main()
 	const auto diamondFloorAlbedoData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_albedo.png");
 	const auto diamondFloorAlbedo = Game::LoadTexture(diamondFloorAlbedoData);
 	const auto sampler = Game::Sampler{ Game::FilterType::LINEAR, Game::FilterType::LINEAR, "simple_sampler" };
-	const auto diamondFloorTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor", sampler };
+	const auto diamondFloorAlbedoTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor", sampler };
+
+	const auto diamondFloorNormalData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_normal.png");
+	const auto diamondFloorNormal = Game::LoadTexture(diamondFloorNormalData);
+	const auto diamondFloorNormalTexture = Game::Texture{ diamondFloorNormal, "diamond_floor", sampler };
 
 	auto meshManager = Game::MeshManager{};
 	auto materialManager = Game::MaterialManager{};
@@ -141,7 +167,8 @@ int main()
 			static_cast<float>(window.GetRenderWidth()), static_cast<float>(window.GetRenderHeight()),
 			0.1f, 1000.0f
 		},
-		.theOneTexture = diamondFloorTexture,
+		.theOneTexture = diamondFloorAlbedoTexture,
+		.theOneNormal = diamondFloorNormalTexture,
 		.lights = {
 			.ambient = {0.5f, 0.5f, 0.5f},
 			.light = {

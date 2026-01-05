@@ -71,6 +71,7 @@ namespace Game {
 		MaterialManager& materialManager;
 		Camera camera;
 		const Texture& theOneTexture;
+		const Texture& theOneNormal;
 		LightData lights;
 	};
 
