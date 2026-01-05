@@ -37,7 +37,7 @@ namespace {
 		try
 		{
 			const auto props = wmi.Query("SELECT * FROM Win32_VideoController", "Caption");
-			return props | std::views::join_with(' ') | std::ranges::to<std::string>();
+			return props | std::views::join_with(',') | std::ranges::to<std::string>();
 		}
 		catch (Game::Exception& e)
 		{
