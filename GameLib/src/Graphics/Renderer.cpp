@@ -55,6 +55,7 @@ namespace {
 
 	layout(binding = 4, std430) readonly buffer lights
 	{
+		float ambientColor[3];
 		float pointLightPos[3];
 		float pointLightColor[3];
 		float pointLightAttenuation[3];
@@ -135,6 +136,7 @@ namespace {
 
 	layout(binding = 4, std430) readonly buffer lights
 	{
+		float ambientColor[3];
 		float pointLightPos[3];
 		float pointLightColor[3];
 		float pointLightAttenuation[3];
@@ -171,7 +173,8 @@ namespace {
 
 	void main()
 	{
-		out_color = vec4(calc_point(in_frag_position.xyz, in_normal), 1.0);
+		vec3 ambColor = vec3(ambientColor[0], ambientColor[1], ambientColor[2]);
+		out_color = vec4(ambColor + calc_point(in_frag_position.xyz, in_normal), 1.0);
 	}
 	)"sv;
 
@@ -190,7 +193,7 @@ namespace Game {
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{}
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
-		, m_LightBuffer{ sizeof(PointLight), "light_buffer" }
+		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
 		, m_Program{ CreateProgram() }
 	{
@@ -226,7 +229,7 @@ namespace Game {
 		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
-		m_LightBuffer.Write(std::as_bytes(std::span<const PointLight, 1>{&scene.light, 1}), 0);
+		m_LightBuffer.Write(std::as_bytes(std::span<const LightData, 1>{&scene.lights, 1}), 0);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_LightBuffer.GetNativeHandle());
 
 		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 0, scene.theOneTexture.GetNativeHandle());

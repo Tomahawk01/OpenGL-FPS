@@ -120,31 +120,39 @@ namespace Game {
 
 		if (ImGui::CollapsingHeader("Lights"))
 		{
-			float pos[] = { scene.light.position.x, scene.light.position.y, scene.light.position.z };
-			if (ImGui::SliderFloat3("attenuation", pos, -100.0f, 100.0f))
+			float ambColor[3]{};
+			std::memcpy(ambColor, &scene.lights.ambient, sizeof(ambColor));
+
+			if (ImGui::ColorPicker3("ambient light color", ambColor))
 			{
-				scene.light.position = { pos[0], pos[1], pos[2] };
+				std::memcpy(&scene.lights.ambient, ambColor, sizeof(ambColor));
+			}
+
+			float pos[] = { scene.lights.light.position.x, scene.lights.light.position.y, scene.lights.light.position.z };
+			if (ImGui::SliderFloat3("position", pos, -100.0f, 100.0f))
+			{
+				scene.lights.light.position = { pos[0], pos[1], pos[2] };
 			}
 
 			float color[3]{};
-			std::memcpy(color, &scene.light.color, sizeof(color));
+			std::memcpy(color, &scene.lights.light.color, sizeof(color));
 
 			if (ImGui::ColorPicker3("light color", color))
 			{
-				std::memcpy(&scene.light.color, color, sizeof(color));
+				std::memcpy(&scene.lights.light.color, color, sizeof(color));
 			}
 
-			float atten[] = { scene.light.constantAttenuation, scene.light.linearAttenuation, scene.light.quadraticAttenuation };
+			float atten[] = { scene.lights.light.constantAttenuation, scene.lights.light.linearAttenuation, scene.lights.light.quadraticAttenuation };
 			if (ImGui::SliderFloat3("attenuation", atten, 0.0f, 2.0f))
 			{
-				scene.light.constantAttenuation = atten[0];
-				scene.light.linearAttenuation = atten[1];
-				scene.light.quadraticAttenuation = atten[2];
+				scene.lights.light.constantAttenuation = atten[0];
+				scene.lights.light.linearAttenuation = atten[1];
+				scene.lights.light.quadraticAttenuation = atten[2];
 			}
 
 			if (!m_SelectedEntity)
 			{
-				auto transform = mat4{ scene.light.position };
+				auto transform = mat4{ scene.lights.light.position };
 				const auto& cameraData = scene.camera.GetData();
 
 				ImGuizmo::Manipulate(
@@ -159,7 +167,7 @@ namespace Game {
 					nullptr);
 
 				const auto newTransform = Transform{ transform };
-				scene.light.position = newTransform.Position;
+				scene.lights.light.position = newTransform.Position;
 			}
 		}
 

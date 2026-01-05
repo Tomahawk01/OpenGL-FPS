@@ -23,6 +23,12 @@ namespace Game {
 		vec3 position;
 	};
 
+	struct LightData
+	{
+		Color ambient;
+		PointLight light;
+	};
+
 	struct Scene
 	{
 		constexpr std::optional<IntersectionResult> IntersectRay(const Ray& ray) const
@@ -65,7 +71,7 @@ namespace Game {
 		MaterialManager& materialManager;
 		Camera camera;
 		const Texture& theOneTexture;
-		PointLight light;
+		LightData lights;
 	};
 
 }

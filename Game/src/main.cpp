@@ -142,12 +142,15 @@ int main()
 			0.1f, 1000.0f
 		},
 		.theOneTexture = diamondFloorTexture,
-		.light = {
-			.position = {},
-			.color = { 1.0f, 1.0f, 1.0f },
-			.constantAttenuation = 1.0f,
-			.linearAttenuation = 0.007f,
-			.quadraticAttenuation = 0.0002f
+		.lights = {
+			.ambient = {0.5f, 0.5f, 0.5f},
+			.light = {
+				.position = {},
+				.color = { 1.0f, 1.0f, 1.0f },
+				.constantAttenuation = 1.0f,
+				.linearAttenuation = 0.007f,
+				.quadraticAttenuation = 0.0002f
+			}
 		}
 	};
 
