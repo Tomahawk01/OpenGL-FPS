@@ -9,6 +9,8 @@
 #include "Math/Ray.h"
 #include "Math/Vector4.h"
 
+#include "Graphics/PointLight.h"
+
 #include <optional>
 #include <ranges>
 #include <vector>
@@ -63,6 +65,7 @@ namespace Game {
 		MaterialManager& materialManager;
 		Camera camera;
 		const Texture& theOneTexture;
+		PointLight light;
 	};
 
 }
