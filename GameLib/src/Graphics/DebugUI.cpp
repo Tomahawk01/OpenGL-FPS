@@ -114,7 +114,52 @@ namespace Game {
 					nullptr,
 					nullptr);
 
-				entity.transform = transform;
+				entity.transform = Transform{ transform };
+			}
+		}
+
+		if (ImGui::CollapsingHeader("Lights"))
+		{
+			float pos[] = { scene.light.position.x, scene.light.position.y, scene.light.position.z };
+			if (ImGui::SliderFloat3("attenuation", pos, -100.0f, 100.0f))
+			{
+				scene.light.position = { pos[0], pos[1], pos[2] };
+			}
+
+			float color[3]{};
+			std::memcpy(color, &scene.light.color, sizeof(color));
+
+			if (ImGui::ColorPicker3("light color", color))
+			{
+				std::memcpy(&scene.light.color, color, sizeof(color));
+			}
+
+			float atten[] = { scene.light.constantAttenuation, scene.light.linearAttenuation, scene.light.quadraticAttenuation };
+			if (ImGui::SliderFloat3("attenuation", atten, 0.0f, 2.0f))
+			{
+				scene.light.constantAttenuation = atten[0];
+				scene.light.linearAttenuation = atten[1];
+				scene.light.quadraticAttenuation = atten[2];
+			}
+
+			if (!m_SelectedEntity)
+			{
+				auto transform = mat4{ scene.light.position };
+				const auto& cameraData = scene.camera.GetData();
+
+				ImGuizmo::Manipulate(
+					cameraData.view.Data().data(),
+					cameraData.projection.Data().data(),
+					ImGuizmo::TRANSLATE | ImGuizmo::SCALE | ImGuizmo::BOUNDS | ImGuizmo::ROTATE,
+					ImGuizmo::WORLD,
+					const_cast<float*>(transform.Data().data()),
+					nullptr,
+					nullptr,
+					nullptr,
+					nullptr);
+
+				const auto newTransform = Transform{ transform };
+				scene.light.position = newTransform.Position;
 			}
 		}
 
