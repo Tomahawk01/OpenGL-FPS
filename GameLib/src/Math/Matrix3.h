@@ -22,9 +22,20 @@ namespace Game {
 			})
 		{}
 
+		explicit constexpr mat3(std::initializer_list<float> il)
+			: mat3{ std::span<const float>{std::move(il)} }
+		{}
+
 		constexpr mat3(const std::array<float, 9u>& elements)
 			: m_Elements(elements)
 		{}
+
+		explicit constexpr mat3(const std::span<const float>& elements)
+			: mat3{}
+		{
+			Ensure(elements.size() == 9u, "Not enough elements");
+			std::ranges::copy(elements, std::ranges::begin(m_Elements));
+		}
 
 		constexpr mat3(const vec3& v1, const vec3& v2, const vec3& v3)
 			: m_Elements({

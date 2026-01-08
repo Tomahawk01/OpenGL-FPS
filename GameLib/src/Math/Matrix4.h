@@ -7,6 +7,7 @@
 
 #include <array>
 #include <ranges>
+#include <initializer_list>
 #include <format>
 #include <span>
 
@@ -24,6 +25,10 @@ namespace Game {
 				0.0f, 0.0f, 1.0f, 0.0f,
 				0.0f, 0.0f, 0.0f, 1.0f
 			})
+		{}
+
+		explicit mat4(std::initializer_list<float> il)
+			: mat4{ std::span<const float>{std::move(il)} }
 		{}
 
 		explicit mat4(const std::array<float, 16u>& elements)
