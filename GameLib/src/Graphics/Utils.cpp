@@ -13,6 +13,7 @@ namespace {
 	{
 		switch (numChannels)
 		{
+			case 1: return Game::TextureFormat::RED;
 			case 3: return Game::TextureFormat::RGB;
 			case 4: return Game::TextureFormat::RGBA;
 		}

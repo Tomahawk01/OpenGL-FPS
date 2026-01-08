@@ -8,6 +8,7 @@ namespace Game {
 
 	enum class TextureFormat
 	{
+		RED,
 		RGB,
 		RGBA
 	};
@@ -24,6 +25,7 @@ namespace Game {
 	{
 		switch (format)
 		{
+			case Game::TextureFormat::RED: return "RED";
 			case Game::TextureFormat::RGB: return "RGB";
 			case Game::TextureFormat::RGBA: return "RGBA";
 			default: return "unknown";

@@ -8,6 +8,7 @@ namespace {
 	{
 		switch (format)
 		{
+			case Game::TextureFormat::RED: return includeSize ? GL_R8 : GL_RED;
 			case Game::TextureFormat::RGB: return includeSize ? GL_RGB8 : GL_RGB;
 			case Game::TextureFormat::RGBA: return includeSize ? GL_RGBA8 : GL_RGBA;
 		}
