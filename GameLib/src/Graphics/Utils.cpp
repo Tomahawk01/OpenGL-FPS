@@ -30,6 +30,7 @@ namespace Game {
 		int height{};
 		int numChannels{};
 
+		stbi_set_flip_vertically_on_load(true);
 		auto rawData = std::unique_ptr<stbi_uc, void(*)(void*)>{
 			stbi_load_from_memory(reinterpret_cast<const stbi_uc*>(imageData.data()), imageData.size(), &width, &height, &numChannels, 0),
 			stbi_image_free
