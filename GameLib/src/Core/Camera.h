@@ -13,6 +13,8 @@ namespace Game {
 	{
 		mat4 view;
 		mat4 projection;
+		vec3 position;
+		float pad = 0.0f;
 	};
 
 	class Camera
@@ -50,7 +52,6 @@ namespace Game {
 	private:
 		CameraData m_Data;
 
-		vec3 m_Position;
 		vec3 m_Direction;
 		vec3 m_Up;
 		vec3 m_Right;

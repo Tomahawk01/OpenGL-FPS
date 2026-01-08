@@ -25,9 +25,9 @@ namespace Game {
 				   float nearPlane, float farPlane)
 		: m_Data{
 			.view = mat4::LookAt(position, lookAt, up),
-			.projection = mat4::Perspective(fov, width, height, nearPlane, farPlane)
+			.projection = mat4::Perspective(fov, width, height, nearPlane, farPlane),
+			.position = position
 		}
-		, m_Position(position)
 		, m_Direction(lookAt)
 		, m_Up(up)
 		, m_Right(vec3::Normalize(vec3::Cross(m_Direction, m_Up)))
@@ -40,16 +40,16 @@ namespace Game {
 		, m_FarPlane(farPlane)
 	{
 		m_Direction = CreateDirection(m_Pitch, m_Yaw);
-		m_Data.view = mat4::LookAt(m_Position, m_Position + m_Direction, m_Up);
+		m_Data.view = mat4::LookAt(m_Data.position, m_Data.position + m_Direction, m_Up);
 		AddPitch(0.0f);
 	}
 
 	Camera::Camera(float width, float height, float depth)
 		: m_Data{
 			.view = mat4::LookAt(vec3{ 0.0f, 0.0f, 1.0f }, {}, { 0.0f, 1.0f, 0.0f }),
-			.projection = mat4::Orthographic(width, height, depth)
+			.projection = mat4::Orthographic(width, height, depth),
+			.position = { 0.0f, 0.0f, 1.0f }
 		}
-		, m_Position(vec3{ 0.0f, 0.0f, 1.0f })
 		, m_Direction(vec3{ 0.0f, 0.0f, -1.0f })
 		, m_Up(vec3{ 0.0f, 1.0f, 0.0f })
 		, m_Right(vec3::Normalize(vec3::Cross(m_Direction, m_Up)))
@@ -64,9 +64,9 @@ namespace Game {
 
 	void Camera::Translate(const vec3& translation)
 	{
-		m_Position += translation;
+		m_Data.position += translation;
 		m_Direction = CreateDirection(m_Pitch, m_Yaw);
-		m_Data.view = mat4::LookAt(m_Position, m_Position + m_Direction, m_Up);
+		m_Data.view = mat4::LookAt(m_Data.position, m_Data.position + m_Direction, m_Up);
 	}
 
 	void Camera::AddYaw(float value)
@@ -78,7 +78,7 @@ namespace Game {
 		m_Right = vec3::Normalize(vec3::Cross(m_Direction, worldUp));
 		m_Up = vec3::Normalize(vec3::Cross(m_Right, m_Direction));
 
-		m_Data.view = mat4::LookAt(m_Position, m_Position + m_Direction, m_Up);
+		m_Data.view = mat4::LookAt(m_Data.position, m_Data.position + m_Direction, m_Up);
 	}
 
 	void Camera::SetYaw(float yaw)
@@ -97,7 +97,7 @@ namespace Game {
 		m_Right = vec3::Normalize(vec3::Cross(m_Direction, worldUp));
 		m_Up = vec3::Normalize(vec3::Cross(m_Right, m_Direction));
 
-		m_Data.view = mat4::LookAt(m_Position, m_Position + m_Direction, m_Up);
+		m_Data.view = mat4::LookAt(m_Data.position, m_Data.position + m_Direction, m_Up);
 	}
 
 	void Camera::SetPitch(float pitch)
@@ -107,13 +107,13 @@ namespace Game {
 
 	vec3 Camera::GetPosition() const
 	{
-		return m_Position;
+		return m_Data.position;
 	}
 
 	void Camera::SetPosition(const vec3& position)
 	{
-		m_Position = position;
-		m_Data.view = mat4::LookAt(m_Position, m_Position + m_Direction, m_Up);
+		m_Data.position = position;
+		m_Data.view = mat4::LookAt(m_Data.position, m_Data.position + m_Direction, m_Up);
 	}
 
 	vec3 Camera::GetDirection() const
