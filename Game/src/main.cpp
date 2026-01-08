@@ -147,11 +147,15 @@ int main()
 	const auto diamondFloorAlbedoData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_albedo.png");
 	const auto diamondFloorAlbedo = Game::LoadTexture(diamondFloorAlbedoData);
 	const auto sampler = Game::Sampler{ Game::FilterType::LINEAR, Game::FilterType::LINEAR, "simple_sampler" };
-	const auto diamondFloorAlbedoTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor", sampler };
+	const auto diamondFloorAlbedoTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor_albedo", sampler };
 
 	const auto diamondFloorNormalData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_normal.png");
 	const auto diamondFloorNormal = Game::LoadTexture(diamondFloorNormalData);
-	const auto diamondFloorNormalTexture = Game::Texture{ diamondFloorNormal, "diamond_floor", sampler };
+	const auto diamondFloorNormalTexture = Game::Texture{ diamondFloorNormal, "diamond_floor_normal", sampler };
+
+	const auto diamondFloorSpecularData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_specular.png");
+	const auto diamondFloorSpecular = Game::LoadTexture(diamondFloorSpecularData);
+	const auto diamondFloorSpecularTexture = Game::Texture{ diamondFloorSpecular, "diamond_floor_specular", sampler };
 
 	auto meshManager = Game::MeshManager{};
 	auto materialManager = Game::MaterialManager{};
@@ -178,6 +182,7 @@ int main()
 		},
 		.theOneTexture = diamondFloorAlbedoTexture,
 		.theOneNormal = diamondFloorNormalTexture,
+		.theOneSpecular = diamondFloorSpecularTexture,
 		.lights = {
 			.ambient = {0.5f, 0.5f, 0.5f},
 			.light = {
@@ -185,7 +190,8 @@ int main()
 				.color = { 1.0f, 1.0f, 1.0f },
 				.constantAttenuation = 1.0f,
 				.linearAttenuation = 0.007f,
-				.quadraticAttenuation = 0.0002f
+				.quadraticAttenuation = 0.0002f,
+				.specularPower = 32.0f
 			}
 		}
 	};
