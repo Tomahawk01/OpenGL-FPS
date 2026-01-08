@@ -46,28 +46,6 @@ namespace {
 			{0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}, {0.0f, -1.0f, 0.0f}
 		};
 
-		const Game::vec3 tangents[] = {
-			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f},
-			{-1.0f, 0.0f, 0.0f}, {-1.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
-			{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f},
-			{1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f, 0.0f}
-		};
-
-		const Game::vec3 bitangents[] = {
-			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 0.0f},
-			{0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f},
-			{0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 0.0f, 1.0f},
-			{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f}
-		};
-
 		const Game::UV uvs[] = {
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
 			{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}, {0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f},
@@ -83,9 +61,40 @@ namespace {
 			20, 21, 22, 22, 23, 20
 		};
 
-		return { .vertices = Vertices(positions, normals, tangents, bitangents, uvs),
-				 .indices = std::move(indices)
-		};
+		auto vs = Game::MeshData{ .vertices = Vertices(positions, normals, normals, normals, uvs), .indices = std::move(indices) };
+
+		for (const auto& indices : std::views::chunk(vs.indices, 3))
+		{
+			auto& v0 = vs.vertices[indices[0]];
+			auto& v1 = vs.vertices[indices[1]];
+			auto& v2 = vs.vertices[indices[2]];
+
+			const auto edge1 = v1.position - v0.position;
+			const auto edge2 = v2.position - v0.position;
+
+			const auto deltaUV1 = Game::UV{ .s = v1.uv.s - v0.uv.s, .t = v1.uv.t - v0.uv.t };
+			const auto deltaUV2 = Game::UV{ .s = v2.uv.s - v0.uv.s, .t = v2.uv.t - v0.uv.t };
+
+			const auto f = 1.0f / (deltaUV1.s * deltaUV2.t - deltaUV2.s * deltaUV1.t);
+
+			const auto tangent = Game::vec3{
+				f * (deltaUV2.t * edge1.x - deltaUV1.t * edge2.x),
+				f * (deltaUV2.t * edge1.y - deltaUV1.t * edge2.y),
+				f * (deltaUV2.t * edge1.z - deltaUV1.t * edge2.z),
+			};
+
+			v0.tangent += tangent;
+			v1.tangent += tangent;
+			v2.tangent += tangent;
+		}
+
+		for (auto& v : vs.vertices)
+		{
+			v.tangent = Game::vec3::Normalize(v.tangent - v.normal * Game::vec3::Dot(v.normal, v.tangent));
+			v.bitangent = Game::vec3::Normalize(Game::vec3::Cross(v.normal, v.tangent));
+		}
+
+		return vs;
 	}
 
 	Game::vec3 WalkDirection(std::unordered_map<Game::Key, bool>& keyState, const Game::Camera& camera)
