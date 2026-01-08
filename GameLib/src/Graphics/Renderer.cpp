@@ -43,6 +43,8 @@ namespace {
 	{
 		mat4 view;
 		mat4 projection;
+		float cameraPosition[3];
+		float pad;
 	};
 
 	layout(binding = 2, std430) readonly buffer objects
@@ -61,6 +63,7 @@ namespace {
 		float pointLightPos[3];
 		float pointLightColor[3];
 		float pointLightAttenuation[3];
+		float pointLightSpecularPower;
 	};
 
 	vec3 get_position(uint index)
@@ -142,6 +145,8 @@ namespace {
 	{
 		mat4 view;
 		mat4 projection;
+		float cameraPosition[3];
+		float pad;
 	};
 
 	layout(binding = 2, std430) readonly buffer objects
@@ -160,7 +165,19 @@ namespace {
 		float pointLightPos[3];
 		float pointLightColor[3];
 		float pointLightAttenuation[3];
+		float pointLightSpecularPower;
 	};
+
+	layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
+	layout(location = 1, bindless_sampler) uniform sampler2D normal_tex;
+	layout(location = 2, bindless_sampler) uniform sampler2D specular_tex;
+
+	layout(location = 0) in flat uint in_material_index;
+	layout(location = 1) in vec2 in_uv;
+	layout(location = 2) in vec4 in_frag_position;
+	layout(location = 3) in mat3 in_tbn;
+
+	layout(location = 0) out vec4 out_color;
 
 	vec3 get_color(uint index)
 	{
@@ -179,18 +196,13 @@ namespace {
 		vec3 lightDir = normalize(pos - fragPosition);
 		float diff = max(dot(n, lightDir), 0.0);
 
-		return diff * att * color;
+		vec3 cameraPos = vec3(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
+
+		vec3 reflectDir = reflect(-lightDir, n);
+		float spec = pow(max(dot(normalize(cameraPos - fragPosition), reflectDir), 0.0), pointLightSpecularPower) * texture(specular_tex, in_uv).r;
+
+		return (diff + spec) * att * color;
 	}
-
-	layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
-	layout(location = 1, bindless_sampler) uniform sampler2D normal_tex;
-
-	layout(location = 0) in flat uint in_material_index;
-	layout(location = 1) in vec2 in_uv;
-	layout(location = 2) in vec4 in_frag_position;
-	layout(location = 3) in mat3 in_tbn;
-
-	layout(location = 0) out vec4 out_color;
 
 	void main()
 	{
@@ -262,6 +274,7 @@ namespace Game {
 
 		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 0, scene.theOneTexture.GetNativeHandle());
 		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 1, scene.theOneNormal.GetNativeHandle());
+		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 2, scene.theOneSpecular.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 

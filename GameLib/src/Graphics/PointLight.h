@@ -12,8 +12,9 @@ namespace Game {
 		float constantAttenuation;
 		float linearAttenuation;
 		float quadraticAttenuation;
+		float specularPower;
 	};
 
-	static_assert(sizeof(PointLight) == sizeof(float) * 9);
+	static_assert(sizeof(PointLight) == sizeof(float) * 10);
 
 }

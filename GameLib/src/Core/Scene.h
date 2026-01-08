@@ -72,6 +72,7 @@ namespace Game {
 		Camera camera;
 		const Texture& theOneTexture;
 		const Texture& theOneNormal;
+		const Texture& theOneSpecular;
 		LightData lights;
 	};
 

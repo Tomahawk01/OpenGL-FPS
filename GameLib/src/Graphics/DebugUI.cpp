@@ -142,6 +142,8 @@ namespace Game {
 				std::memcpy(&scene.lights.light.color, color, sizeof(color));
 			}
 
+			ImGui::SliderFloat("power", &scene.lights.light.specularPower, 0.0f, 100.0f);
+
 			float atten[] = { scene.lights.light.constantAttenuation, scene.lights.light.linearAttenuation, scene.lights.light.quadraticAttenuation };
 			if (ImGui::SliderFloat3("attenuation", atten, 0.0f, 2.0f))
 			{
