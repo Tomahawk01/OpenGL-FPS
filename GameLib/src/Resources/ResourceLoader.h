@@ -11,7 +11,7 @@ namespace Game {
 	public:
 		virtual ~ResourceLoader() = default;
 
-		virtual std::string LoadString(std::string_view name) = 0;
+		virtual std::string _LoadString(std::string_view name) = 0;
 		virtual DataBuffer LoadDataBuffer(std::string_view name) = 0;
 	};
 

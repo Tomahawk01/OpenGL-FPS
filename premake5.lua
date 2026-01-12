@@ -9,6 +9,7 @@ configure_file("scripts/config.h.in", "GameLib/src/config.h", {
 workspace "OpenGL_FPS"
     architecture "x64"
     startproject "Game"
+    toolset "clang"
 
     configurations
     {
@@ -21,8 +22,8 @@ workspace "OpenGL_FPS"
         "MultiProcessorCompile"
     }
 
-    filter "system:windows"
-        buildoptions { "/EHsc", "/Zc:preprocessor", "/Zc:__cplusplus" }
+    filter { "system:windows", "toolset:clang" }
+        buildoptions { "/std:c++latest", "-Wno-c23-extensions" }
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 

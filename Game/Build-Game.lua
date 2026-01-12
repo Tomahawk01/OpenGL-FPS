@@ -1,7 +1,6 @@
 project "Game"
     kind "ConsoleApp"
     language "C++"
-    cppdialect "C++23"
     staticruntime "off"
 
     files

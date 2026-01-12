@@ -12,7 +12,7 @@ namespace Game {
 		FileResourceLoader(const std::filesystem::path& root);
 		~FileResourceLoader() override = default;
 
-		std::string LoadString(std::string_view name) override;
+		std::string _LoadString(std::string_view name) override;
 		DataBuffer LoadDataBuffer(std::string_view name) override;
 
 	private:

@@ -5,7 +5,6 @@
 #include "Utils/Log.h"
 
 #include <Windows.h>
-#undef LoadString
 
 #include <cstddef>
 
@@ -56,7 +55,7 @@ namespace Game {
 		: m_Root{ root }
 	{}
 
-	std::string FileResourceLoader::LoadString(std::string_view name)
+	std::string FileResourceLoader::_LoadString(std::string_view name)
 	{
 		return Load<std::string>(m_Root / name);
 	}

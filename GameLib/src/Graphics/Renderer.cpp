@@ -12,13 +12,13 @@ using namespace std::literals;
 namespace {
 
 	constexpr const char sampleVertexShader[] = {
-		#embed "../Game/assets/shaders/simple.vert" suffix(, )
-		0
+		#embed "../Game/assets/shaders/simple.vert"
+		, '\0'
 	};
 
 	constexpr const char sampleFragmentShader[] = {
-		#embed "../Game/assets/shaders/simple.frag" suffix(, )
-		0
+		#embed "../Game/assets/shaders/simple.frag"
+		, '\0'
 	};
 
 	Game::Program CreateProgram()

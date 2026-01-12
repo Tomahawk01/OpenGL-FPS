@@ -1,7 +1,6 @@
 project "GameLib"
     kind "StaticLib"
     language "C++"
-    cppdialect "C++23"
     staticruntime "off"
 
     files
