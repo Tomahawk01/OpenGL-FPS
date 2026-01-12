@@ -48,7 +48,7 @@ namespace Game {
 
 	void Renderer::Render(const Scene& scene)
 	{
-		m_CameraBuffer.Write(scene.camera.GetDataView(), 0);
+		m_CameraBuffer.Write(scene.camera.GetDataView(), 0zu);
 
 		const auto [vertexBufferHandle, indexBufferHandle] = scene.meshManager.GetNativeHandle();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBufferHandle);

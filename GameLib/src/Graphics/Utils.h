@@ -22,10 +22,10 @@ namespace Game {
 		const auto bufferSizeBytes = cpuBuffer.size() * sizeof(T);
 		if (gpuBuffer.GetSize() <= bufferSizeBytes)
 		{
-			auto newSize = gpuBuffer.GetSize() * 2;
+			auto newSize = gpuBuffer.GetSize() * 2zu;
 			while (newSize < bufferSizeBytes)
 			{
-				newSize *= 2;
+				newSize *= 2zu;
 			}
 
 			Game::Log::Info("Growing {} buffer {} -> {}", name, gpuBuffer.GetSize(), newSize);

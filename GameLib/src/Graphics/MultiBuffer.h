@@ -9,7 +9,7 @@ namespace Game {
 
 	// @brief A multi buffer wrapper over a Buffer type.
 	// Will allocate size * Frames amount of data and can advance through the internal frames
-	template<IsBuffer Buffer, size_t Frames = size_t{ 3 }>
+	template<IsBuffer Buffer, size_t Frames = 3zu>
 	class MultiBuffer
 	{
 	public:
