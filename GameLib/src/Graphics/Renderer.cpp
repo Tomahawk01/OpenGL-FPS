@@ -11,20 +11,10 @@ using namespace std::literals;
 
 namespace {
 
-	constexpr const char sampleVertexShader[] = {
-		#embed "../Game/assets/shaders/simple.vert"
-		, '\0'
-	};
-
-	constexpr const char sampleFragmentShader[] = {
-		#embed "../Game/assets/shaders/simple.frag"
-		, '\0'
-	};
-
-	Game::Program CreateProgram()
+	Game::Program CreateProgram(Game::ResourceLoader& resourceLoader)
 	{
-		const auto sampleVert = Game::Shader{ sampleVertexShader, Game::ShaderType::VERTEX, "sample_vertex_shader"sv };
-		const auto sampleFrag = Game::Shader{ sampleFragmentShader, Game::ShaderType::FRAGMENT, "sample_fragment_shader"sv };
+		const auto sampleVert = Game::Shader{ resourceLoader._LoadString("shaders\\simple.vert"), Game::ShaderType::VERTEX, "sample_vertex_shader"sv };
+		const auto sampleFrag = Game::Shader{ resourceLoader._LoadString("shaders\\simple.frag"), Game::ShaderType::FRAGMENT, "sample_fragment_shader"sv };
 		return { sampleVert, sampleFrag, "sample_prog"sv };
 	}
 
@@ -32,13 +22,13 @@ namespace {
 
 namespace Game {
 
-	Renderer::Renderer()
+	Renderer::Renderer(ResourceLoader& resourceLoader)
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{}
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
 		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
-		, m_Program{ CreateProgram() }
+		, m_Program{ CreateProgram(resourceLoader) }
 	{
 		glGenVertexArrays(1, &m_DummyVAO);
 		glBindVertexArray(m_DummyVAO);

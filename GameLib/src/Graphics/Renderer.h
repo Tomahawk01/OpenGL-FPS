@@ -1,7 +1,8 @@
 #pragma once
 
-#include "CommandBuffer.h"
 #include "Core/Scene.h"
+#include "Resources/ResourceLoader.h"
+#include "CommandBuffer.h"
 #include "Program.h"
 #include "OpenGL.h"
 #include "Utils/AutoRelease.h"
@@ -11,7 +12,7 @@ namespace Game {
 	class Renderer
 	{
 	public:
-		Renderer();
+		Renderer(ResourceLoader& resourceLoader);
 
 		void Render(const Scene& scene);
 
