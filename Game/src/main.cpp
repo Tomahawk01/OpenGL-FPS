@@ -1,6 +1,7 @@
 #include "config.h"
 #include "Core/Scene.h"
 #include "Resources/FileResourceLoader.h"
+#include "Resources/EmbeddedResourceLoader.h"
 #include "Graphics/Window.h"
 #include "Graphics/Shader.h"
 #include "Graphics/Renderer.h"
@@ -11,6 +12,7 @@
 #include "Utils/SystemInfo.h"
 
 #include <numbers>
+#include <memory>
 #include <unordered_map>
 
 namespace {
@@ -143,23 +145,24 @@ int main()
 	auto window = Game::Window{ Game::WindowMode::WINDOWED, 1920u, 1080u, 0u, 0u };
 	auto running = true;
 
-	auto resourceLoader = Game::FileResourceLoader{ "assets" };
-	const auto diamondFloorAlbedoData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_albedo.png");
+	std::unique_ptr<Game::ResourceLoader> resourceLoader = std::make_unique<Game::EmbeddedResourceLoader>();
+
+	const auto diamondFloorAlbedoData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_albedo.png");
 	const auto diamondFloorAlbedo = Game::LoadTexture(diamondFloorAlbedoData);
 	const auto sampler = Game::Sampler{ Game::FilterType::LINEAR, Game::FilterType::LINEAR, "simple_sampler" };
 	const auto diamondFloorAlbedoTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor_albedo", sampler };
 
-	const auto diamondFloorNormalData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_normal.png");
+	const auto diamondFloorNormalData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_normal.png");
 	const auto diamondFloorNormal = Game::LoadTexture(diamondFloorNormalData);
 	const auto diamondFloorNormalTexture = Game::Texture{ diamondFloorNormal, "diamond_floor_normal", sampler };
 
-	const auto diamondFloorSpecularData = resourceLoader.LoadDataBuffer("textures\\diamond_floor_specular.png");
+	const auto diamondFloorSpecularData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_specular.png");
 	const auto diamondFloorSpecular = Game::LoadTexture(diamondFloorSpecularData);
 	const auto diamondFloorSpecularTexture = Game::Texture{ diamondFloorSpecular, "diamond_floor_specular", sampler };
 
 	auto meshManager = Game::MeshManager{};
 	auto materialManager = Game::MaterialManager{};
-	auto renderer = Game::Renderer{};
+	auto renderer = Game::Renderer{ *resourceLoader };
 	auto debugUI = Game::DebugUI{ window };
 	auto debugMode = false;
 
