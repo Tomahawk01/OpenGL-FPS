@@ -83,20 +83,7 @@ namespace Game {
 
 		for (auto& entity : scene.entities)
 		{
-			auto& material = scene.materialManager[entity.materialKey];
-
-			if (ImGui::CollapsingHeader(entity.name.c_str()))
-			{
-				float color[3]{};
-				std::memcpy(color, &material.color, sizeof(color));
-
-				const auto label = std::format("{} color", entity.name);
-
-				if (ImGui::ColorPicker3(label.c_str(), color))
-				{
-					std::memcpy(&material.color, color, sizeof(color));
-				}
-			}
+			ImGui::CollapsingHeader(entity.name.c_str());
 
 			if (&entity == m_SelectedEntity)
 			{

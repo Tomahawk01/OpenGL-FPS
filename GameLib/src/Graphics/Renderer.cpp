@@ -56,18 +56,16 @@ namespace Game {
 													  }) |
 								std::ranges::to<std::vector>();
 		ResizeGPUBuffer(objectData, m_ObjectDataBuffer, "object_data_buffer");
-		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0);
+		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0zu);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ObjectDataBuffer.GetNativeHandle());
 
 		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
-		m_LightBuffer.Write(std::as_bytes(std::span<const LightData, 1>{&scene.lights, 1}), 0);
+		m_LightBuffer.Write(std::as_bytes(std::span<const LightData, 1zu>{&scene.lights, 1zu}), 0zu);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_LightBuffer.GetNativeHandle());
 
-		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 0, scene.theOneTexture.GetNativeHandle());
-		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 1, scene.theOneNormal.GetNativeHandle());
-		glProgramUniformHandleui64ARB(m_Program.GetNativeHandle(), 2, scene.theOneSpecular.GetNativeHandle());
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, scene.textureManager.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 

@@ -2,6 +2,7 @@
 
 #include "Core/Camera.h"
 #include "Core/Entity.h"
+#include "Graphics/TextureManager.h"
 #include "Graphics/MeshManager.h"
 #include "Graphics/MaterialManager.h"
 #include "Graphics/Texture.h"
@@ -69,10 +70,8 @@ namespace Game {
 		std::vector<Entity> entities;
 		MeshManager& meshManager;
 		MaterialManager& materialManager;
+		TextureManager& textureManager;
 		Camera camera;
-		const Texture& theOneTexture;
-		const Texture& theOneNormal;
-		const Texture& theOneSpecular;
 		LightData lights;
 	};
 
