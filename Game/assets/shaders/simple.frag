@@ -18,7 +18,9 @@ struct ObjectData
 
 struct MaterialData
 {
-	float color[3];
+	uint albedo_index;
+	uint normal_index;
+	uint specular_index;
 };
 
 layout(binding = 0, std430) readonly buffer vertices
@@ -53,9 +55,10 @@ layout(binding = 4, std430) readonly buffer lights
 	float pointLightSpecularPower;
 };
 
-layout(location = 0, bindless_sampler) uniform sampler2D albedo_tex;
-layout(location = 1, bindless_sampler) uniform sampler2D normal_tex;
-layout(location = 2, bindless_sampler) uniform sampler2D specular_tex;
+layout(binding = 5, std430) readonly buffer textures_buffer
+{
+	sampler2D textures[];
+};
 
 layout(location = 0) in flat uint in_material_index;
 layout(location = 1) in vec2 in_uv;
@@ -64,13 +67,10 @@ layout(location = 3) in mat3 in_tbn;
 
 layout(location = 0) out vec4 out_color;
 
-vec3 get_color(uint index)
-{
-	return vec3(materialData[index].color[0], materialData[index].color[1], materialData[index].color[2]);
-}
-
 vec3 calc_point(vec3 fragPosition, vec3 n)
 {
+	uint specularTexIndex = materialData[in_material_index].specular_index;
+
 	vec3 pos = vec3(pointLightPos[0], pointLightPos[1], pointLightPos[2]);
 	vec3 color = vec3(pointLightColor[0], pointLightColor[1], pointLightColor[2]);
 	vec3 attenuation = vec3(pointLightAttenuation[0], pointLightAttenuation[1], pointLightAttenuation[2]);
@@ -84,18 +84,21 @@ vec3 calc_point(vec3 fragPosition, vec3 n)
 	vec3 cameraPos = vec3(cameraPosition[0], cameraPosition[1], cameraPosition[2]);
 
 	vec3 reflectDir = reflect(-lightDir, n);
-	float spec = pow(max(dot(normalize(cameraPos - fragPosition), reflectDir), 0.0), pointLightSpecularPower) * texture(specular_tex, in_uv).r;
+	float spec = pow(max(dot(normalize(cameraPos - fragPosition), reflectDir), 0.0), pointLightSpecularPower) * texture(textures[specularTexIndex], in_uv).r;
 
 	return (diff + spec) * att * color;
 }
 
 void main()
 {
-	vec3 n = texture(normal_tex, in_uv).xyz;
+	uint albedoTexIndex = materialData[in_material_index].albedo_index;
+	uint normalTexIndex = materialData[in_material_index].normal_index;
+
+	vec3 n = texture(textures[normalTexIndex], in_uv).xyz;
 	n = (n * 2.0) - 1.0;
 	n = normalize(in_tbn * n);
 
-	vec3 albedo = texture(albedo_tex, in_uv).rgb;
+	vec3 albedo = texture(textures[albedoTexIndex], in_uv).rgb;
 	vec3 ambColor = vec3(ambientColor[0], ambientColor[1], ambientColor[2]);
 	vec3 pointColor = calc_point(in_frag_position.xyz, n);
 
