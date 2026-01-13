@@ -7,6 +7,7 @@
 #include "Graphics/Renderer.h"
 #include "Graphics/MeshData.h"
 #include "Graphics/DebugUI.h"
+#include "Graphics/TextureManager.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -146,35 +147,40 @@ int main()
 	auto running = true;
 
 	std::unique_ptr<Game::ResourceLoader> resourceLoader = std::make_unique<Game::EmbeddedResourceLoader>();
+	auto textures = std::vector<Game::Texture>{};
 
 	const auto diamondFloorAlbedoData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_albedo.png");
 	const auto diamondFloorAlbedo = Game::LoadTexture(diamondFloorAlbedoData);
 	const auto sampler = Game::Sampler{ Game::FilterType::LINEAR, Game::FilterType::LINEAR, "simple_sampler" };
-	const auto diamondFloorAlbedoTexture = Game::Texture{ diamondFloorAlbedo, "diamond_floor_albedo", sampler };
+	textures.push_back(Game::Texture{ diamondFloorAlbedo, "diamond_floor_albedo", sampler });
 
 	const auto diamondFloorNormalData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_normal.png");
 	const auto diamondFloorNormal = Game::LoadTexture(diamondFloorNormalData);
-	const auto diamondFloorNormalTexture = Game::Texture{ diamondFloorNormal, "diamond_floor_normal", sampler };
+	textures.push_back(Game::Texture{ diamondFloorNormal, "diamond_floor_normal", sampler });
 
 	const auto diamondFloorSpecularData = resourceLoader->LoadDataBuffer("textures\\diamond_floor_specular.png");
 	const auto diamondFloorSpecular = Game::LoadTexture(diamondFloorSpecularData);
-	const auto diamondFloorSpecularTexture = Game::Texture{ diamondFloorSpecular, "diamond_floor_specular", sampler };
+	textures.push_back(Game::Texture{ diamondFloorSpecular, "diamond_floor_specular", sampler });
 
 	auto meshManager = Game::MeshManager{};
 	auto materialManager = Game::MaterialManager{};
+	auto textureManager = Game::TextureManager{};
+
+	const auto texIndex = textureManager.Add(std::move(textures));
+
 	auto renderer = Game::Renderer{ *resourceLoader };
 	auto debugUI = Game::DebugUI{ window };
 	auto debugMode = false;
 
-	const auto materialKeyRed = materialManager.Add(Game::Color{ 1.0f, 0.0f, 0.0f });
-	const auto materialKeyBlue = materialManager.Add(Game::Color{ 0.0f, 0.0f, 1.0f });
-	const auto materialKeyGreen = materialManager.Add(Game::Color{ 0.0f, 1.0f, 0.0f });
-	materialManager.Remove(materialKeyBlue);
+	const auto materialKeyRed = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
+	const auto materialKeyBlue = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
+	const auto materialKeyGreen = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 
 	auto scene = Game::Scene{
 		.entities = {},
 		.meshManager = meshManager,
 		.materialManager = materialManager,
+		.textureManager = textureManager,
 		.camera = {
 			{},
 			{0.0f, 0.0f, -1.0f},
@@ -183,9 +189,6 @@ int main()
 			static_cast<float>(window.GetRenderWidth()), static_cast<float>(window.GetRenderHeight()),
 			0.1f, 1000.0f
 		},
-		.theOneTexture = diamondFloorAlbedoTexture,
-		.theOneNormal = diamondFloorNormalTexture,
-		.theOneSpecular = diamondFloorSpecularTexture,
 		.lights = {
 			.ambient = {0.5f, 0.5f, 0.5f},
 			.light = {
