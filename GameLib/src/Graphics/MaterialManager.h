@@ -46,7 +46,9 @@ namespace Game {
 
 	struct MaterialData
 	{
-		Color color;
+		uint32_t albedoTextureIndex;
+		uint32_t normalTextureIndex;
+		uint32_t specularTextureIndex;
 	};
 
 	class MaterialManager
@@ -63,7 +65,7 @@ namespace Game {
 			static auto keyNum = 0u;
 			const auto key = MaterialKey{ keyNum++ };
 
-			m_MaterialDataCPU.emplace(key, std::forward<Args>(args)...);
+			m_MaterialDataCPU.emplace(key, MaterialData{ std::forward<Args>(args)... });
 			ResizeGPUBuffer(Data(), m_MaterialDataGPU, "material_manager_buffer");
 
 			return key;

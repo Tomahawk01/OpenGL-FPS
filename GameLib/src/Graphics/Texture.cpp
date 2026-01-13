@@ -35,7 +35,10 @@ namespace Game {
 
 	Texture::~Texture()
 	{
-		glMakeTextureHandleNonResidentARB(m_BindlessHandle);
+		if (m_Handle)
+		{
+			glMakeTextureHandleNonResidentARB(m_BindlessHandle);
+		}
 	}
 
 	GLuint64 Texture::GetNativeHandle() const
