@@ -18,17 +18,46 @@ namespace {
 		return { sampleVert, sampleFrag, "sample_prog"sv };
 	}
 
+	Game::FrameBuffer CreateFrameBuffer(uint32_t width, uint32_t height, Game::Sampler& sampler, Game::TextureManager& textureManager)
+	{
+		const auto fbTextureData = Game::TextureData{
+			.width = width,
+			.height = height,
+			.format = Game::TextureFormat::RGB16F,
+			.data = std::nullopt
+		};
+		auto fbTexture = Game::Texture{ fbTextureData, "fb_texture", sampler };
+		const auto fbTextureIndex = textureManager.Add(std::move(fbTexture));
+
+		const auto depthTextureData = Game::TextureData{
+			.width = width,
+			.height = height,
+			.format = Game::TextureFormat::DEPTH24,
+			.data = std::nullopt
+		};
+		auto depthTexture = Game::Texture{ depthTextureData, "depth_texture", sampler };
+		const auto depthTextureIndex = textureManager.Add(std::move(depthTexture));
+
+		return {
+			textureManager.GetTextures({fbTextureIndex}),
+			textureManager.GetTexture(depthTextureIndex),
+			"main_frame_buffer"
+		};
+	}
+
 }
 
 namespace Game {
 
-	Renderer::Renderer(ResourceLoader& resourceLoader)
+	Renderer::Renderer(uint32_t width, uint32_t height, ResourceLoader& resourceLoader, TextureManager& textureManager)
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{}
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
 		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
 		, m_Program{ CreateProgram(resourceLoader) }
+		, m_FBSampler{ FilterType::LINEAR, FilterType::LINEAR, "fb_sampler" }
+		, m_FB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager) }
 	{
 		glGenVertexArrays(1, &m_DummyVAO);
 		glBindVertexArray(m_DummyVAO);
@@ -38,6 +67,9 @@ namespace Game {
 
 	void Renderer::Render(const Scene& scene)
 	{
+		m_FB.Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 		m_CameraBuffer.Write(scene.camera.GetDataView(), 0zu);
 
 		const auto [vertexBufferHandle, indexBufferHandle] = scene.meshManager.GetNativeHandle();
@@ -74,6 +106,22 @@ namespace Game {
 		m_LightBuffer.Advance();
 		m_ObjectDataBuffer.Advance();
 		scene.materialManager.Advance();
+
+		m_FB.UnBind();
+
+		glBlitNamedFramebuffer(
+			m_FB.GetNativeHandle(),
+			0u,
+			0u,
+			0u,
+			m_FB.GetWidth(),
+			m_FB.GetHeight(),
+			0u,
+			0u,
+			m_FB.GetWidth(),
+			m_FB.GetHeight(),
+			GL_COLOR_BUFFER_BIT,
+			GL_NEAREST);
 	}
 
 }
