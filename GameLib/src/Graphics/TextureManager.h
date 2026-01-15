@@ -19,6 +19,9 @@ namespace Game {
 
         GLuint GetNativeHandle() const;
 
+        const Texture* GetTexture(uint32_t index) const;
+        std::vector<const Texture*> GetTextures(const std::vector<uint32_t>& indices) const;
+
     private:
         Buffer m_GPUBuffer;
         std::vector<GLuint64> m_CPUBuffer;

@@ -1,6 +1,7 @@
 #include "TextureManager.h"
 
 #include "Utils.h"
+#include "Utils\Error.h"
 #include "Utils\Log.h"
 
 #include <span>
@@ -45,6 +46,23 @@ namespace Game {
 	GLuint TextureManager::GetNativeHandle() const
 	{
 		return m_GPUBuffer.GetNativeHandle();
+	}
+
+	const Texture* TextureManager::GetTexture(uint32_t index) const
+	{
+		Expect(index <= m_Textures.size(), "index {} out of range", index);
+		return std::addressof(m_Textures[index]);
+	}
+
+	std::vector<const Texture*> TextureManager::GetTextures(const std::vector<uint32_t>& indices) const
+	{
+		return indices |
+			std::views::transform(
+				[this](auto i) {
+					Expect(i <= m_Textures.size(), "index {} out of range", i);
+					return std::addressof(m_Textures[i]);
+				}) |
+			std::ranges::to<std::vector>();
 	}
 
 }
