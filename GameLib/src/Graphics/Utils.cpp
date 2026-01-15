@@ -44,7 +44,7 @@ namespace Game {
 			.width = static_cast<uint32_t>(width),
 			.height = static_cast<uint32_t>(height),
 			.format = ChannelsToFormat(numChannels),
-			.data = { ptr, ptr + width * height * numChannels }
+			.data = { {ptr, ptr + width * height * numChannels} }
 		};
 	}
 

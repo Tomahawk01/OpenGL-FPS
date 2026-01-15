@@ -2,6 +2,7 @@
 
 #include "Utils/DataBuffer.h"
 
+#include <optional>
 #include <string>
 
 namespace Game {
@@ -10,7 +11,9 @@ namespace Game {
 	{
 		RED,
 		RGB,
-		RGBA
+		RGBA,
+		RGB16F,
+		DEPTH24
 	};
 
 	struct TextureData
@@ -18,16 +21,18 @@ namespace Game {
 		uint32_t width;
 		uint32_t height;
 		TextureFormat format;
-		DataBuffer data;
+		std::optional<DataBuffer> data;
 	};
 
 	inline std::string to_string(TextureFormat format)
 	{
 		switch (format)
 		{
-			case Game::TextureFormat::RED: return "RED";
-			case Game::TextureFormat::RGB: return "RGB";
-			case Game::TextureFormat::RGBA: return "RGBA";
+			case TextureFormat::RED: return "RED";
+			case TextureFormat::RGB: return "RGB";
+			case TextureFormat::RGBA: return "RGBA";
+			case TextureFormat::RGB16F: return "RGB16F";
+			case TextureFormat::DEPTH24: return "DEPTH24";
 			default: return "unknown";
 		}
 	}

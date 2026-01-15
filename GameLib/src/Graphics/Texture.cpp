@@ -11,6 +11,8 @@ namespace {
 			case Game::TextureFormat::RED: return includeSize ? GL_R8 : GL_RED;
 			case Game::TextureFormat::RGB: return includeSize ? GL_RGB8 : GL_RGB;
 			case Game::TextureFormat::RGBA: return includeSize ? GL_RGBA8 : GL_RGBA;
+			case Game::TextureFormat::RGB16F: return GL_RGB16F;
+			case Game::TextureFormat::DEPTH24: return GL_DEPTH_COMPONENT24;
 		}
 		throw Game::Exception("Unknown texture format: {}", format);
 	}
@@ -29,7 +31,10 @@ namespace Game {
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_Handle);
 		glObjectLabel(GL_TEXTURE, m_Handle, name.length(), name.data());
 		glTextureStorage2D(m_Handle, 1, ToOpenGL(texture.format, true), texture.width, texture.height);
-		glTextureSubImage2D(m_Handle, 0, 0, 0, texture.width, texture.height, ToOpenGL(texture.format, false), GL_UNSIGNED_BYTE, texture.data.data());
+		if (const auto& data = texture.data; data)
+		{
+			glTextureSubImage2D(m_Handle, 0, 0, 0, texture.width, texture.height, ToOpenGL(texture.format, false), GL_UNSIGNED_BYTE, data->data());
+		}
 
 		m_BindlessHandle = glGetTextureSamplerHandleARB(m_Handle, sampler.GetNativeHandle());
 		glMakeTextureHandleResidentARB(m_BindlessHandle);
