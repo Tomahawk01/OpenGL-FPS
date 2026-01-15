@@ -8,6 +8,7 @@
 #include "Graphics/MeshData.h"
 #include "Graphics/DebugUI.h"
 #include "Graphics/TextureManager.h"
+#include "Graphics/Utils.h"
 #include "Utils/Formatter.h"
 #include "Utils/Log.h"
 #include "Utils/SystemInfo.h"
@@ -17,15 +18,6 @@
 #include <unordered_map>
 
 namespace {
-
-	template<class ...Args>
-	std::vector<Game::VertexData> Vertices(Args&&... args)
-	{
-		return std::views::zip_transform(
-			[]<class ...A>(A&&... a) { return Game::VertexData{ std::forward<A>(a)... }; },
-			std::forward<Args>(args)...
-		) | std::ranges::to<std::vector>();
-	}
 
 	Game::MeshData Cube()
 	{
@@ -168,7 +160,7 @@ int main()
 
 	const auto texIndex = textureManager.Add(std::move(textures));
 
-	auto renderer = Game::Renderer{ window.GetRenderWidth(), window.GetRenderHeight(), *resourceLoader, textureManager };
+	auto renderer = Game::Renderer{ window.GetRenderWidth(), window.GetRenderHeight(), *resourceLoader, textureManager, meshManager };
 	auto debugUI = Game::DebugUI{ window };
 	auto debugMode = false;
 

@@ -1,11 +1,13 @@
 #pragma once
 
 #include "TextureData.h"
+#include "VertexData.h"
 #include "Utils/DataBuffer.h"
 #include "Utils/Log.h"
 #include "OpenGL.h"
 
 #include <vector>
+#include <ranges>
 #include <string_view>
 
 namespace Game {
@@ -15,6 +17,15 @@ namespace Game {
 	{
 		{ t.Write(data, offset) };
 	};
+
+	template<class ...Args>
+	std::vector<Game::VertexData> Vertices(Args&&... args)
+	{
+		return std::views::zip_transform(
+			[]<class ...A>(A&&... a) { return Game::VertexData{ std::forward<A>(a)... }; },
+			std::forward<Args>(args)...
+		) | std::ranges::to<std::vector>();
+	}
 
 	template<class T, IsBuffer Buffer>
 	void ResizeGPUBuffer(const std::vector<T>& cpuBuffer, Buffer& gpuBuffer, std::string_view name)
