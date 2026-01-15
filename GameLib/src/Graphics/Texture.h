@@ -16,7 +16,8 @@ namespace Game {
 		Texture(Texture&&) = default;
 		Texture& operator=(Texture&&) = default;
 
-		GLuint64 GetNativeHandle() const;
+		GLuint GetNativeHandle() const;
+		GLuint64 GetBindlessHandle() const;
 		std::string GetName() const;
 		uint32_t GetWidth() const;
 		uint32_t GetHeight() const;

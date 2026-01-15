@@ -43,7 +43,12 @@ namespace Game {
 		}
 	}
 
-	GLuint64 Texture::GetNativeHandle() const
+	GLuint Texture::GetNativeHandle() const
+	{
+		return m_Handle;
+	}
+
+	GLuint64 Texture::GetBindlessHandle() const
 	{
 		return m_BindlessHandle;
 	}
