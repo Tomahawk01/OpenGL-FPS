@@ -12,13 +12,19 @@ namespace Game {
 	class Transform
 	{
 	public:
+		constexpr Transform()
+			: Position{}
+			, Scale{ 1.0f }
+			, Rotation{}
+		{}
+
 		constexpr Transform(const vec3& position, const vec3& scale, const quat& rotation)
 			: Position{ position }
 			, Scale{ scale }
 			, Rotation{ rotation }
 		{}
 
-		Transform(const mat4& transform)
+		constexpr Transform(const mat4& transform)
 			: Position{}
 			, Scale{}
 			, Rotation{}
