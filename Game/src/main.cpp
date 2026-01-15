@@ -168,7 +168,7 @@ int main()
 
 	const auto texIndex = textureManager.Add(std::move(textures));
 
-	auto renderer = Game::Renderer{ *resourceLoader };
+	auto renderer = Game::Renderer{ window.GetRenderWidth(), window.GetRenderHeight(), *resourceLoader, textureManager };
 	auto debugUI = Game::DebugUI{ window };
 	auto debugMode = false;
 
@@ -219,8 +219,6 @@ int main()
 
 	while (running)
 	{
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 		auto event = window.PollEvent();
 		while (event && running)
 		{
