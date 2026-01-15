@@ -23,6 +23,8 @@ namespace Game {
 		: m_Handle{ 0u, [](auto texture) { glDeleteTextures(1, &texture); } }
 		, m_BindlessHandle{}
 		, m_Name{ name }
+		, m_Width{ texture.width }
+		, m_Height{ texture.height }
 	{
 		glCreateTextures(GL_TEXTURE_2D, 1, &m_Handle);
 		glObjectLabel(GL_TEXTURE, m_Handle, name.length(), name.data());
@@ -49,6 +51,16 @@ namespace Game {
 	std::string Texture::GetName() const
 	{
 		return m_Name;
+	}
+
+	uint32_t Texture::GetWidth() const
+	{
+		return m_Width;
+	}
+
+	uint32_t Texture::GetHeight() const
+	{
+		return m_Height;
 	}
 
 }

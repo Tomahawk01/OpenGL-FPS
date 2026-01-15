@@ -18,11 +18,15 @@ namespace Game {
 
 		GLuint64 GetNativeHandle() const;
 		std::string GetName() const;
+		uint32_t GetWidth() const;
+		uint32_t GetHeight() const;
 
 	private:
 		AutoRelease<GLuint> m_Handle;
 		GLuint64 m_BindlessHandle;
 		std::string m_Name;
+		uint32_t m_Width;
+		uint32_t m_Height;
 	};
 
 }
