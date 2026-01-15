@@ -8,12 +8,20 @@
 
 namespace {
 
-	constexpr const char sampleVertexShader[] = {
+	constexpr const char simpleVertexShader[] = {
 		#embed "../Game/assets/shaders/simple.vert"
 	};
 
-	constexpr const char sampleFragmentShader[] = {
+	constexpr const char simpleFragmentShader[] = {
 		#embed "../Game/assets/shaders/simple.frag"
+	};
+
+	constexpr const char lightPassVertexShader[] = {
+		#embed "../Game/assets/shaders/light_pass.vert"
+	};
+
+	constexpr const char lightPassFragmentShader[] = {
+		#embed "../Game/assets/shaders/light_pass.frag"
 	};
 
 	constexpr const char diamondFloorAlbedo[] = {
@@ -44,8 +52,10 @@ namespace Game {
 	EmbeddedResourceLoader::EmbeddedResourceLoader()
 	{
 		m_Lookup = {
-			{"shaders\\simple.vert", sampleVertexShader},
-			{"shaders\\simple.frag", sampleFragmentShader},
+			{"shaders\\simple.vert", simpleVertexShader},
+			{"shaders\\simple.frag", simpleFragmentShader},
+			{"shaders\\light_pass.vert", lightPassVertexShader},
+			{"shaders\\light_pass.frag", lightPassFragmentShader},
 			{"textures\\diamond_floor_albedo.png", diamondFloorAlbedo},
 			{"textures\\diamond_floor_normal.png", diamondFloorNormal},
 			{"textures\\diamond_floor_specular.png", diamondFloorSpecular},
