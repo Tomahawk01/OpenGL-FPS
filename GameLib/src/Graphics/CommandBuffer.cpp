@@ -52,6 +52,24 @@ namespace Game {
 		return command.size();
 	}
 
+	uint32_t CommandBuffer::Build(const Entity& entity)
+	{
+		const auto cmd = IndirectCommand{
+			.count = entity.meshView.indexCount,
+			.instanceCount = 1u,
+			.first = entity.meshView.indexOffset,
+			.baseVertex = 0u,
+			.baseInstance = 0u
+		};
+		const auto commandView = std::as_bytes(std::span{&cmd, 1});
+
+		ResizeGPUBuffer(std::vector<IndirectCommand>{ cmd }, m_CommandBuffer, "command_buffer");
+
+		m_CommandBuffer.Write(commandView, 0u);
+
+		return 1u;
+	}
+
 	void CommandBuffer::Advance()
 	{
 		m_CommandBuffer.Advance();

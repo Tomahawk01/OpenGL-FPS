@@ -16,6 +16,7 @@ namespace Game {
 		CommandBuffer();
 
 		uint32_t Build(const Scene& scene);
+		uint32_t Build(const Entity& entity);
 		void Advance();
 		size_t OffsetBytes() const;
 
