@@ -36,7 +36,7 @@ namespace Game {
 					.count = e.meshView.indexCount,
 					.instanceCount = 1u,
 					.first = e.meshView.indexOffset,
-					.baseVertex = base,
+					.baseVertex = static_cast<int32_t>(e.meshView.vertexOffset),
 					.baseInstance = 0u
 				};
 				base += e.meshView.vertexOffset;
