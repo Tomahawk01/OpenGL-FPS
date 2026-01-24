@@ -18,7 +18,7 @@ namespace {
 		return { simpleVert, simpleFrag, programName };
 	}
 
-	Game::FrameBuffer CreateFrameBuffer(uint32_t width, uint32_t height, Game::Sampler& sampler, Game::TextureManager& textureManager, uint32_t& fbTextureIndex)
+	Game::FrameBuffer CreateFrameBuffer(uint32_t width, uint32_t height, Game::Sampler& sampler, Game::TextureManager& textureManager, uint32_t& fbTextureIndex, std::string_view name)
 	{
 		const auto fbTextureData = Game::TextureData{
 			.width = width,
@@ -26,7 +26,7 @@ namespace {
 			.format = Game::TextureFormat::RGB16F,
 			.data = std::nullopt
 		};
-		auto fbTexture = Game::Texture{ fbTextureData, "fb_texture", sampler };
+		auto fbTexture = Game::Texture{ fbTextureData, std::format("{}_fb_texture", name), sampler };
 		fbTextureIndex = textureManager.Add(std::move(fbTexture));
 
 		const auto depthTextureData = Game::TextureData{
@@ -35,13 +35,13 @@ namespace {
 			.format = Game::TextureFormat::DEPTH24,
 			.data = std::nullopt
 		};
-		auto depthTexture = Game::Texture{ depthTextureData, "depth_texture", sampler };
+		auto depthTexture = Game::Texture{ depthTextureData, std::format("{}_depth_texture", name), sampler };
 		const auto depthTextureIndex = textureManager.Add(std::move(depthTexture));
 
 		return {
 			textureManager.GetTextures({fbTextureIndex}),
 			textureManager.GetTexture(depthTextureIndex),
-			"main_frame_buffer"
+			std::format("{}_frame_buffer", name)
 		};
 	}
 
@@ -85,9 +85,9 @@ namespace Game {
 		, m_LightPassProgram{ CreateProgram(resourceLoader, "shaders\\light_pass.vert", "light_pass_vertex_shader", "shaders\\light_pass.frag", "light_pass_fragment_shader", "light_pass_prog")}
 		, m_FBSampler{ FilterType::LINEAR, FilterType::LINEAR, "fb_sampler" }
 		, m_FBTextureIndex{}
-		, m_FB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_FBTextureIndex) }
+		, m_FB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_FBTextureIndex, "fb") }
 		, m_LightPassTextureIndex{}
-		, m_LightPassFB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_LightPassTextureIndex) }
+		, m_LightPassFB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_LightPassTextureIndex, "light_pass") }
 	{
 		m_PostProcessingCommandBuffer.Build(m_PostProcessSprite);
 
@@ -134,11 +134,12 @@ namespace Game {
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
 		m_LightPassFB.Bind();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_LightPassProgram.Use();
-		glClear(GL_COLOR_BUFFER_BIT);
-		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 0u, 1u);
+		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 0u, m_FBTextureIndex);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBufferHandle);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.textureManager.GetNativeHandle());
+		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_PostProcessingCommandBuffer.GetNativeHandle());
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_PostProcessingCommandBuffer.OffsetBytes()), 1u, 0);
 
 		m_CommandBuffer.Advance();
