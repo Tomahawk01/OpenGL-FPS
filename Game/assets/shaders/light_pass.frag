@@ -31,5 +31,5 @@ void main()
 {
 	vec3 color = texture(textures[tex_index], in_uv).rgb;
 
-	out_color = vec4(color.ggg, 1.0);
+	out_color = vec4(color, 1.0);
 }
