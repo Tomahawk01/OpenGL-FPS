@@ -18,16 +18,20 @@ namespace {
 		return { simpleVert, simpleFrag, programName };
 	}
 
-	Game::FrameBuffer CreateFrameBuffer(uint32_t width, uint32_t height, Game::Sampler& sampler, Game::TextureManager& textureManager, uint32_t& fbTextureIndex, std::string_view name)
+	Game::RenderTarget CreateRenderTarget(uint32_t colorAttachmentCount, uint32_t width, uint32_t height, Game::Sampler& sampler, Game::TextureManager& textureManager, std::string_view name)
 	{
-		const auto fbTextureData = Game::TextureData{
+		const auto colorAttachmentTextureData = Game::TextureData{
 			.width = width,
 			.height = height,
 			.format = Game::TextureFormat::RGB16F,
 			.data = std::nullopt
 		};
-		auto fbTexture = Game::Texture{ fbTextureData, std::format("{}_fb_texture", name), sampler };
-		fbTextureIndex = textureManager.Add(std::move(fbTexture));
+
+		auto colorAttachments = std::views::iota(0u, colorAttachmentCount) |
+			std::views::transform([&](auto index) { return Game::Texture{ colorAttachmentTextureData, std::format("{}_{}_texture", name, index), sampler }; }) |
+			std::ranges::to<std::vector>();
+
+		const auto firstIndex = textureManager.Add(std::move(colorAttachments));
 
 		const auto depthTextureData = Game::TextureData{
 			.width = width,
@@ -38,10 +42,17 @@ namespace {
 		auto depthTexture = Game::Texture{ depthTextureData, std::format("{}_depth_texture", name), sampler };
 		const auto depthTextureIndex = textureManager.Add(std::move(depthTexture));
 
-		return {
-			textureManager.GetTextures({fbTextureIndex}),
+		auto fb = Game::FrameBuffer{
+			textureManager.GetTextures(std::views::iota(firstIndex, firstIndex + colorAttachmentCount) | std::ranges::to<std::vector>()),
 			textureManager.GetTexture(depthTextureIndex),
 			std::format("{}_frame_buffer", name)
+		};
+
+		return {
+			.fb = std::move(fb),
+			.colorAttachmentCount = colorAttachmentCount,
+			.firstColorAttachmentIndex = firstIndex,
+			.depthAttachmentIndex = depthTextureIndex
 		};
 	}
 
@@ -81,13 +92,11 @@ namespace Game {
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
 		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
-		, m_GBufferProgram{ CreateProgram(resourceLoader, "shaders\\simple.vert", "simple_vertex_shader", "shaders\\simple.frag", "simple_fragment_shader", "gbuffer_prog")}
+		, m_GBufferProgram{ CreateProgram(resourceLoader, "shaders\\gbuffer.vert", "gbuffer_vertex_shader", "shaders\\gbuffer.frag", "gbuffer_fragment_shader", "gbuffer_prog")}
 		, m_LightPassProgram{ CreateProgram(resourceLoader, "shaders\\light_pass.vert", "light_pass_vertex_shader", "shaders\\light_pass.frag", "light_pass_fragment_shader", "light_pass_prog")}
 		, m_FBSampler{ FilterType::LINEAR, FilterType::LINEAR, "fb_sampler" }
-		, m_FBTextureIndex{}
-		, m_FB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_FBTextureIndex, "fb") }
-		, m_LightPassTextureIndex{}
-		, m_LightPassFB{ CreateFrameBuffer(width, height, m_FBSampler, textureManager, m_LightPassTextureIndex, "light_pass") }
+		, m_GBufferRT{ CreateRenderTarget(4u, width, height, m_FBSampler, textureManager, "gbuffer") }
+		, m_LightPassRT{ CreateRenderTarget(1u, width, height, m_FBSampler, textureManager, "light_pass") }
 	{
 		m_PostProcessingCommandBuffer.Build(m_PostProcessSprite);
 
@@ -97,7 +106,7 @@ namespace Game {
 
 	void Renderer::Render(const Scene& scene)
 	{
-		m_FB.Bind();
+		m_GBufferRT.fb.Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		m_GBufferProgram.Use();
@@ -126,19 +135,23 @@ namespace Game {
 		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
-		m_LightBuffer.Write(std::as_bytes(std::span<const LightData, 1zu>{&scene.lights, 1zu}), 0zu);
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, m_LightBuffer.GetNativeHandle());
-
-		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 5, scene.textureManager.GetNativeHandle());
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, scene.textureManager.GetNativeHandle());
 
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_CommandBuffer.OffsetBytes()), commandCount, 0);
 
-		m_LightPassFB.Bind();
+		m_LightBuffer.Write(std::as_bytes(std::span<const LightData, 1zu>{&scene.lights, 1zu}), 0zu);
+
+		m_LightPassRT.fb.Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		m_LightPassProgram.Use();
-		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 0u, m_FBTextureIndex);
+		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 0u, m_GBufferRT.firstColorAttachmentIndex + 0u);
+		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 1u, m_GBufferRT.firstColorAttachmentIndex + 1u);
+		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 2u, m_GBufferRT.firstColorAttachmentIndex + 2u);
+		glProgramUniform1ui(m_LightPassProgram.GetNativeHandle(), 3u, m_GBufferRT.firstColorAttachmentIndex + 3u);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, vertexBufferHandle);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, scene.textureManager.GetNativeHandle());
+		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_LightBuffer.GetNativeHandle());
+		glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 3, m_CameraBuffer.GetNativeHandle(), m_CameraBuffer.FrameOffsetBytes(), sizeof(CameraData));
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_PostProcessingCommandBuffer.GetNativeHandle());
 		glMultiDrawElementsIndirect(GL_TRIANGLES, GL_UNSIGNED_INT, reinterpret_cast<const void*>(m_PostProcessingCommandBuffer.OffsetBytes()), 1u, 0);
 
@@ -148,19 +161,19 @@ namespace Game {
 		m_ObjectDataBuffer.Advance();
 		scene.materialManager.Advance();
 
-		m_LightPassFB.UnBind();
+		m_LightPassRT.fb.UnBind();
 
 		glBlitNamedFramebuffer(
-			m_LightPassFB.GetNativeHandle(),
+			m_LightPassRT.fb.GetNativeHandle(),
 			0u,
 			0u,
 			0u,
-			m_LightPassFB.GetWidth(),
-			m_LightPassFB.GetHeight(),
+			m_LightPassRT.fb.GetWidth(),
+			m_LightPassRT.fb.GetHeight(),
 			0u,
 			0u,
-			m_LightPassFB.GetWidth(),
-			m_LightPassFB.GetHeight(),
+			m_LightPassRT.fb.GetWidth(),
+			m_LightPassRT.fb.GetHeight(),
 			GL_COLOR_BUFFER_BIT,
 			GL_NEAREST);
 	}

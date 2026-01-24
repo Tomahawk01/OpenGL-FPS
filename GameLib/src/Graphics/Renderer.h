@@ -13,6 +13,14 @@
 
 namespace Game {
 
+	struct RenderTarget
+	{
+		FrameBuffer fb;
+		uint32_t colorAttachmentCount;
+		uint32_t firstColorAttachmentIndex;
+		uint32_t depthAttachmentIndex;
+	};
+
 	class Renderer
 	{
 	public:
@@ -31,10 +39,8 @@ namespace Game {
 		Program m_GBufferProgram;
 		Program m_LightPassProgram;
 		Sampler m_FBSampler;
-		uint32_t m_FBTextureIndex;
-		FrameBuffer m_FB;
-		uint32_t m_LightPassTextureIndex;
-		FrameBuffer m_LightPassFB;
+		RenderTarget m_GBufferRT;
+		RenderTarget m_LightPassRT;
 	};
 
 }

@@ -16,6 +16,14 @@ namespace {
 		#embed "../Game/assets/shaders/simple.frag"
 	};
 
+	constexpr const char gbufferVertexShader[] = {
+		#embed "../Game/assets/shaders/gbuffer.vert"
+	};
+
+	constexpr const char gbufferFragmentShader[] = {
+		#embed "../Game/assets/shaders/gbuffer.frag"
+	};
+
 	constexpr const char lightPassVertexShader[] = {
 		#embed "../Game/assets/shaders/light_pass.vert"
 	};
@@ -54,6 +62,8 @@ namespace Game {
 		m_Lookup = {
 			{"shaders\\simple.vert", simpleVertexShader},
 			{"shaders\\simple.frag", simpleFragmentShader},
+			{"shaders\\gbuffer.vert", gbufferVertexShader},
+			{"shaders\\gbuffer.frag", gbufferFragmentShader},
 			{"shaders\\light_pass.vert", lightPassVertexShader},
 			{"shaders\\light_pass.frag", lightPassFragmentShader},
 			{"textures\\diamond_floor_albedo.png", diamondFloorAlbedo},
