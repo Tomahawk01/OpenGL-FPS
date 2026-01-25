@@ -66,7 +66,7 @@ namespace Game {
 			const auto key = MaterialKey{ keyNum++ };
 
 			m_MaterialDataCPU.emplace(key, MaterialData{ std::forward<Args>(args)... });
-			ResizeGPUBuffer(Data(), m_MaterialDataGPU, "material_manager_buffer");
+			ResizeGPUBuffer(Data(), m_MaterialDataGPU);
 
 			return key;
 		}

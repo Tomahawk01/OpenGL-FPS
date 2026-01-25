@@ -9,6 +9,7 @@
 #include <vector>
 #include <ranges>
 #include <string_view>
+#include <type_traits>
 
 namespace Game {
 
@@ -16,6 +17,7 @@ namespace Game {
 	concept IsBuffer = requires(T t, DataBufferView data, size_t offset)
 	{
 		{ t.Write(data, offset) };
+		{ t.GetName() } -> std::convertible_to<std::string_view>;
 	};
 
 	template<class ...Args>
@@ -28,7 +30,7 @@ namespace Game {
 	}
 
 	template<class T, IsBuffer Buffer>
-	void ResizeGPUBuffer(const std::vector<T>& cpuBuffer, Buffer& gpuBuffer, std::string_view name)
+	void ResizeGPUBuffer(const std::vector<T>& cpuBuffer, Buffer& gpuBuffer)
 	{
 		const auto bufferSizeBytes = cpuBuffer.size() * sizeof(T);
 		if (gpuBuffer.GetSize() <= bufferSizeBytes)
@@ -39,12 +41,12 @@ namespace Game {
 				newSize *= 2zu;
 			}
 
-			Game::Log::Info("Growing {} buffer {} -> {}", name, gpuBuffer.GetSize(), newSize);
+			Game::Log::Info("Growing {} buffer {} -> {}", gpuBuffer.GetName(), gpuBuffer.GetSize(), newSize);
 
 			// OpenGL barrier in case gpu using previous frame
 			glFinish();
 
-			gpuBuffer = Buffer{ newSize, name };
+			gpuBuffer = Buffer{ newSize, gpuBuffer.GetName() };
 		}
 	}
 

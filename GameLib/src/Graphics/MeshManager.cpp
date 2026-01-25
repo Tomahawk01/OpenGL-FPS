@@ -19,12 +19,12 @@ namespace Game {
 		const auto indexOffset = m_IndexDataCPU.size();
 
 		m_VertexDataCPU.append_range(meshData.vertices);
-		ResizeGPUBuffer(m_VertexDataCPU, m_VertexDataGPU, "vertex_mesh_data");
+		ResizeGPUBuffer(m_VertexDataCPU, m_VertexDataGPU);
 		const auto vertexDataView = DataBufferView{ reinterpret_cast<const std::byte*>(m_VertexDataCPU.data()), m_VertexDataCPU.size() * sizeof(VertexData) };
 		m_VertexDataGPU.Write(vertexDataView, 0u);
 
 		m_IndexDataCPU.append_range(meshData.indices);
-		ResizeGPUBuffer(m_IndexDataCPU, m_IndexDataGPU, "index_mesh_data");
+		ResizeGPUBuffer(m_IndexDataCPU, m_IndexDataGPU);
 		const auto indexDataView = DataBufferView{ reinterpret_cast<const std::byte*>(m_IndexDataCPU.data()), m_IndexDataCPU.size() * sizeof(uint32_t) };
 		m_IndexDataGPU.Write(indexDataView, 0u);
 

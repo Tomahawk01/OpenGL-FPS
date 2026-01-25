@@ -22,7 +22,7 @@ namespace Game {
 		auto& newTex = m_Textures.emplace_back(std::move(texture));
 		m_CPUBuffer.push_back(newTex.GetBindlessHandle());
 
-		ResizeGPUBuffer(m_CPUBuffer, m_GPUBuffer, "bindless_textures");
+		ResizeGPUBuffer(m_CPUBuffer, m_GPUBuffer);
 
 		m_GPUBuffer.Write(std::as_bytes(std::span{ m_CPUBuffer.data(), m_CPUBuffer.size() }), 0zu);
 
@@ -36,7 +36,7 @@ namespace Game {
 		m_Textures.append_range(std::views::as_rvalue(textures));
 		m_CPUBuffer = m_Textures | std::views::transform([](auto& e) { return e.GetBindlessHandle(); }) | std::ranges::to<std::vector>();
 
-		ResizeGPUBuffer(m_CPUBuffer, m_GPUBuffer, "bindless_textures");
+		ResizeGPUBuffer(m_CPUBuffer, m_GPUBuffer);
 
 		m_GPUBuffer.Write(std::as_bytes(std::span{ m_CPUBuffer.data(), m_CPUBuffer.size() }), 0zu);
 

@@ -128,7 +128,7 @@ namespace Game {
 														  return ObjectData{ .model = e.transform, .materialIDIndex = index, .padding = {} };
 													  }) |
 								std::ranges::to<std::vector>();
-		ResizeGPUBuffer(objectData, m_ObjectDataBuffer, "object_data_buffer");
+		ResizeGPUBuffer(objectData, m_ObjectDataBuffer);
 		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0zu);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ObjectDataBuffer.GetNativeHandle());
 

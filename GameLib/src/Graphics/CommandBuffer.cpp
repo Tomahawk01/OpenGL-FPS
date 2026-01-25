@@ -43,7 +43,7 @@ namespace Game {
 
 		const auto commandView = DataBufferView{ reinterpret_cast<const std::byte*>(command.data()), command.size() * sizeof(IndirectCommand) };
 
-		ResizeGPUBuffer(command, m_CommandBuffer, "command_buffer");
+		ResizeGPUBuffer(command, m_CommandBuffer);
 
 		m_CommandBuffer.Write(commandView, 0u);
 
@@ -61,7 +61,7 @@ namespace Game {
 		};
 		const auto commandView = std::as_bytes(std::span{&cmd, 1});
 
-		ResizeGPUBuffer(std::vector<IndirectCommand>{ cmd }, m_CommandBuffer, "command_buffer");
+		ResizeGPUBuffer(std::vector<IndirectCommand>{ cmd }, m_CommandBuffer);
 
 		m_CommandBuffer.Write(commandView, 0u);
 
