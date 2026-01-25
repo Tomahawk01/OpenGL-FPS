@@ -1,48 +1,14 @@
 #pragma once
 
-#include "Color.h"
-#include "PersistentBuffer.h"
-#include "MultiBuffer.h"
+#include "Buffer.h"
 #include "Utils.h"
 #include "Utils/Error.h"
-#include "Utils/Formatter.h"
 
 #include <cstdint>
-#include <string>
+#include <span>
 #include <ranges>
-#include <compare>
-
-#include <flat_map.h>
 
 namespace Game {
-
-	class MaterialKey
-	{
-	public:
-		constexpr MaterialKey(uint32_t key)
-			: m_Key{ key }
-		{}
-
-		constexpr uint32_t Get() const
-		{
-			return m_Key;
-		}
-
-		constexpr uint32_t operator*() const
-		{
-			return Get();
-		}
-
-		constexpr auto operator<=>(const MaterialKey&) const = default;
-
-		std::string to_string() const
-		{
-			return std::to_string(m_Key);
-		}
-
-	private:
-		uint32_t m_Key;
-	};
 
 	struct MaterialData
 	{
@@ -60,47 +26,22 @@ namespace Game {
 		{}
 
 		template<class... Args>
-		MaterialKey Add(Args&&... args)
+		uint32_t Add(Args &&...args)
 		{
-			static auto keyNum = 0u;
-			const auto key = MaterialKey{ keyNum++ };
+			const auto newIndex = m_MaterialDataCPU.size();
 
-			m_MaterialDataCPU.emplace(key, MaterialData{ std::forward<Args>(args)... });
-			ResizeGPUBuffer(Data(), m_MaterialDataGPU);
+			m_MaterialDataCPU.emplace_back(std::forward<Args>(args)...);
 
-			return key;
-		}
+			ResizeGPUBuffer(m_MaterialDataCPU, m_MaterialDataGPU);
 
-		MaterialData& operator[](MaterialKey key)
-		{
-			const auto element = m_MaterialDataCPU.find(key);
-			Expect(element != std::ranges::cend(m_MaterialDataCPU), "Key {} does not exist", key);
+			m_MaterialDataGPU.Write(std::as_bytes(std::span{ m_MaterialDataCPU.data(), m_MaterialDataCPU.size() }), 0zu);
 
-			return element->second;
-		}
-
-		void Remove(MaterialKey key)
-		{
-			m_MaterialDataCPU.erase(key);
-		}
-
-		uint32_t Index(MaterialKey key)
-		{
-			const auto element = m_MaterialDataCPU.find(key);
-			Expect(element != std::ranges::cend(m_MaterialDataCPU), "Could not find key: {}", key);
-
-			return static_cast<uint32_t>(std::ranges::distance(std::ranges::cbegin(m_MaterialDataCPU), element));
+			return newIndex;
 		}
 
 		const std::vector<MaterialData>& Data() const
 		{
-			return m_MaterialDataCPU.values();
-		}
-
-		void Sync()
-		{
-			const auto& values = m_MaterialDataCPU.values();
-			m_MaterialDataGPU.Write(std::as_bytes(std::span{ values.data(), values.size() }), 0);
+			return m_MaterialDataCPU;
 		}
 
 		auto GetNativeHandle() const
@@ -108,14 +49,9 @@ namespace Game {
 			return m_MaterialDataGPU.GetNativeHandle();
 		}
 
-		void Advance()
-		{
-			m_MaterialDataGPU.Advance();
-		}
-
 	private:
-		stdext::flat_map<MaterialKey, MaterialData> m_MaterialDataCPU;
-		MultiBuffer<PersistentBuffer> m_MaterialDataGPU;
+		std::vector<MaterialData> m_MaterialDataCPU;
+		Buffer m_MaterialDataGPU;
 	};
 
 }

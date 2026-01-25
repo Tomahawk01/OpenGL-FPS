@@ -1,9 +1,9 @@
 #pragma once
 
 #include "Graphics/MeshView.h"
-#include "Graphics/MaterialManager.h"
 #include "Math/Transform.h"
 
+#include <cstdint>
 #include <string>
 
 namespace Game {
@@ -13,7 +13,7 @@ namespace Game {
 		std::string name;
 		MeshView meshView;
 		Transform transform;
-		MaterialKey materialKey;
+		uint32_t materialIndex;
 	};
 
 }

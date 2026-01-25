@@ -164,9 +164,9 @@ int main()
 	auto debugUI = Game::DebugUI{ window };
 	auto debugMode = false;
 
-	const auto materialKeyRed = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
-	const auto materialKeyBlue = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
-	const auto materialKeyGreen = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
+	const auto materialIndexRed = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
+	const auto materialIndexBlue = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
+	const auto materialIndexGreen = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 
 	auto scene = Game::Scene{
 		.entities = {},
@@ -195,11 +195,11 @@ int main()
 	};
 
 	scene.entities.push_back(
-		{ .name = "cube1", .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyRed }
+		{ .name = "cube1", .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialIndex = materialIndexRed }
 	);
 
 	scene.entities.push_back(
-		{ .name = "cube2", .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialKey = materialKeyGreen }
+		{ .name = "cube2", .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialIndex = materialIndexGreen }
 	);
 
 	auto keyState = std::unordered_map<Game::Key, bool>{

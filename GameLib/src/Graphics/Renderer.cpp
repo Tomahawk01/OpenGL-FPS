@@ -88,7 +88,7 @@ namespace Game {
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{ "gbuffer_command_buffer" }
 		, m_PostProcessingCommandBuffer{ "post_processing_command_buffer" }
-		, m_PostProcessSprite{ "post_process_sprite", meshManager.Load(Sprite()), {}, {0u} }
+		, m_PostProcessSprite{ "post_process_sprite", meshManager.Load(Sprite()), {}, 0u }
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
 		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
 		, m_ObjectDataBuffer{ sizeof(ObjectData), "object_data_buffer" }
@@ -122,17 +122,15 @@ namespace Game {
 		glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_CommandBuffer.GetNativeHandle());
 
 		const auto objectData = scene.entities |
-								std::views::transform([&scene](const auto& e)
+								std::views::transform([](const auto& e)
 													  {
-														  const auto index = scene.materialManager.Index(e.materialKey);
-														  return ObjectData{ .model = e.transform, .materialIDIndex = index, .padding = {} };
+														  return ObjectData{ .model = e.transform, .materialIDIndex = e.materialIndex, .padding = {} };
 													  }) |
 								std::ranges::to<std::vector>();
 		ResizeGPUBuffer(objectData, m_ObjectDataBuffer);
 		m_ObjectDataBuffer.Write(std::as_bytes(std::span{ objectData.data(), objectData.size() }), 0zu);
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, m_ObjectDataBuffer.GetNativeHandle());
 
-		scene.materialManager.Sync();
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, scene.materialManager.GetNativeHandle());
 
 		glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 4, scene.textureManager.GetNativeHandle());
@@ -159,7 +157,6 @@ namespace Game {
 		m_CameraBuffer.Advance();
 		m_LightBuffer.Advance();
 		m_ObjectDataBuffer.Advance();
-		scene.materialManager.Advance();
 
 		m_LightPassRT.fb.UnBind();
 
