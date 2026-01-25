@@ -13,7 +13,7 @@ namespace Game {
 	class CommandBuffer
 	{
 	public:
-		CommandBuffer();
+		CommandBuffer(std::string_view name);
 
 		uint32_t Build(const Scene& scene);
 		uint32_t Build(const Entity& entity);

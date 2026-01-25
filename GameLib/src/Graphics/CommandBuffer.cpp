@@ -22,8 +22,8 @@ namespace {
 
 namespace Game {
 
-	CommandBuffer::CommandBuffer()
-		: m_CommandBuffer{ 1u, "command_buffer" }
+	CommandBuffer::CommandBuffer(std::string_view name)
+		: m_CommandBuffer{ 1u, name }
 	{}
 
 	uint32_t CommandBuffer::Build(const Scene& scene)

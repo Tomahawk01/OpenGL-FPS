@@ -86,8 +86,8 @@ namespace Game {
 
 	Renderer::Renderer(uint32_t width, uint32_t height, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager)
 		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
-		, m_CommandBuffer{}
-		, m_PostProcessingCommandBuffer{}
+		, m_CommandBuffer{ "gbuffer_command_buffer" }
+		, m_PostProcessingCommandBuffer{ "post_processing_command_buffer" }
 		, m_PostProcessSprite{ "post_process_sprite", meshManager.Load(Sprite()), {}, {0u} }
 		, m_CameraBuffer{ sizeof(CameraData), "camera_buffer" }
 		, m_LightBuffer{ sizeof(LightData), "light_buffer" }
