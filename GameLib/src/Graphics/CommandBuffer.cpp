@@ -28,9 +28,8 @@ namespace Game {
 
 	uint32_t CommandBuffer::Build(const Scene& scene)
 	{
-		auto base = 0;
 		const auto command = scene.entities | std::views::transform(
-			[&base](const auto& e)
+			[](const auto& e)
 			{
 				const auto cmd = IndirectCommand{
 					.count = e.meshView.indexCount,
@@ -39,7 +38,6 @@ namespace Game {
 					.baseVertex = static_cast<int32_t>(e.meshView.vertexOffset),
 					.baseInstance = 0u
 				};
-				base += e.meshView.vertexOffset;
 				return cmd;
 			}) | std::ranges::to<std::vector>();
 
