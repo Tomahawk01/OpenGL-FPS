@@ -26,7 +26,6 @@ namespace {
 		auto rayEye = invProj * rayClip;
 		rayEye.z = -1.0f;
 		rayEye.w = 0.0f;
-		//rayEye = Game::vec4{ rayEye.x, rayEye.y, -1.0f, 0.0f };
 
 		const auto invView = Game::mat4::Invert(camera.GetData().view);
 		const auto dirWS = Game::vec3::Normalize(invView * rayEye);
@@ -50,6 +49,7 @@ namespace Game {
 		auto& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 		ShowCursor(true);
 		io.MouseDrawCursor |= io.WantCaptureMouse;
 
@@ -78,6 +78,10 @@ namespace Game {
 		ImGuizmo::BeginFrame();
 		ImGuizmo::Enable(true);
 		ImGuizmo::SetRect(0, 0, io.DisplaySize.x, io.DisplaySize.y);
+
+		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
+
+		ImGui::Begin("Scene");
 
 		ImGui::LabelText("FPS", "%0.1f", io.Framerate);
 
@@ -160,6 +164,7 @@ namespace Game {
 			}
 		}
 
+		ImGui::End();
 		ImGui::Begin("Log");
 
 		ImGui::BeginChild("log output");
