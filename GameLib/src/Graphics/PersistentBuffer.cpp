@@ -9,6 +9,7 @@ namespace Game {
 	PersistentBuffer::PersistentBuffer(size_t size, std::string_view name)
 		: m_Buffer{ 0u, [](auto buffer) { glUnmapNamedBuffer(buffer); glDeleteBuffers(1, &buffer); } }
 		, m_Size{ size }
+		, m_Name{ name }
 	{
 		const auto flags = GL_MAP_WRITE_BIT | GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
 		glCreateBuffers(1, &m_Buffer);
@@ -27,6 +28,16 @@ namespace Game {
 	GLuint PersistentBuffer::GetNativeHandle() const
 	{
 		return m_Buffer;
+	}
+
+	std::string_view PersistentBuffer::GetName() const
+	{
+		return m_Name;
+	}
+
+	std::string PersistentBuffer::to_string() const
+	{
+		return std::format("{} {}", GetName(), m_Size);
 	}
 
 }

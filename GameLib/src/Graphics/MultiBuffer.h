@@ -49,6 +49,11 @@ namespace Game {
 			return m_FrameOffset;
 		}
 
+		std::string_view GetName() const
+		{
+			return m_Buffer.GetName();
+		}
+
 	private:
 		Buffer m_Buffer;
 		size_t m_Size;

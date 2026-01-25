@@ -7,6 +7,7 @@ namespace Game {
 	Buffer::Buffer(size_t size, std::string_view name)
 		: m_Buffer{ 0u, [](auto buffer) { glDeleteBuffers(1, &buffer); } }
 		, m_Size{ size }
+		, m_Name{ name }
 	{
 		glCreateBuffers(1, &m_Buffer);
 		glNamedBufferStorage(m_Buffer, size, nullptr, GL_DYNAMIC_STORAGE_BIT);
@@ -27,6 +28,16 @@ namespace Game {
 	size_t Buffer::GetSize() const
 	{
 		return m_Size;
+	}
+
+	std::string_view Buffer::GetName() const
+	{
+		return m_Name;
+	}
+
+	std::string Buffer::to_string() const
+	{
+		return std::format("{} {}", GetName(), GetSize());
 	}
 
 }

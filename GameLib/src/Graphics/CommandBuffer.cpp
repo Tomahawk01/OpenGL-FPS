@@ -83,6 +83,11 @@ namespace Game {
 		return m_CommandBuffer.GetBuffer().GetNativeHandle();
 	}
 
+	std::string_view CommandBuffer::GetName() const
+	{
+		return m_CommandBuffer.GetName();
+	}
+
 	std::string CommandBuffer::to_string() const
 	{
 		return std::format("Command buffer {} size", m_CommandBuffer.GetSize());

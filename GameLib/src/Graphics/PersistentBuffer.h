@@ -4,6 +4,7 @@
 #include "Utils/DataBuffer.h"
 #include "OpenGL.h"
 
+#include <string>
 #include <string_view>
 
 namespace Game {
@@ -16,11 +17,15 @@ namespace Game {
 		void Write(DataBufferView data, size_t offset) const;
 
 		GLuint GetNativeHandle() const;
+		std::string_view GetName() const;
+
+		std::string to_string() const;
 
 	private:
 		AutoRelease<GLuint> m_Buffer;
 		size_t m_Size;
 		void* m_Map;
+		std::string m_Name;
 	};
 
 }

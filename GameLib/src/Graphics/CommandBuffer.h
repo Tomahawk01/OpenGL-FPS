@@ -21,6 +21,7 @@ namespace Game {
 		size_t OffsetBytes() const;
 
 		GLuint GetNativeHandle() const;
+		std::string_view GetName() const;
 		std::string to_string() const;
 
 	private:
