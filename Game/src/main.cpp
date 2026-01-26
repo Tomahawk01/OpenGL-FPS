@@ -6,7 +6,7 @@
 #include "Graphics/Shader.h"
 #include "Graphics/Renderer.h"
 #include "Graphics/MeshData.h"
-#include "Graphics/DebugUI.h"
+#include "Graphics/DebugRenderer.h"
 #include "Graphics/TextureManager.h"
 #include "Graphics/Utils.h"
 #include "Utils/Formatter.h"
@@ -160,8 +160,7 @@ int main()
 
 	const auto texIndex = textureManager.Add(std::move(textures));
 
-	auto renderer = Game::Renderer{ window.GetRenderWidth(), window.GetRenderHeight(), *resourceLoader, textureManager, meshManager };
-	auto debugUI = Game::DebugUI{ window };
+	auto renderer = Game::DebugRenderer{ window, *resourceLoader, textureManager, meshManager };
 	auto debugMode = false;
 
 	const auto materialIndexRed = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
@@ -229,6 +228,7 @@ int main()
 						if (arg == Game::KeyEvent{ Game::Key::F1, Game::KeyState::DOWN })
 						{
 							debugMode = !debugMode;
+							renderer.SetEnabled(debugMode);
 						}
 						else
 						{
@@ -248,7 +248,7 @@ int main()
 					}
 					else if constexpr (std::same_as<T, Game::MouseButtonEvent>)
 					{
-						debugUI.AddMouseEvent(arg);
+						renderer.AddMouseEvent(arg);
 					}
 				}, *event
 			);
@@ -259,10 +259,6 @@ int main()
 		scene.camera.Translate(WalkDirection(keyState, scene.camera));
 
 		renderer.Render(scene);
-		if (debugMode)
-		{
-			debugUI.Render(scene);
-		}
 
 		window.Swap();
 	}

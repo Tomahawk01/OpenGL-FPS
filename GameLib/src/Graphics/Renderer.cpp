@@ -84,8 +84,9 @@ namespace {
 
 namespace Game {
 
-	Renderer::Renderer(uint32_t width, uint32_t height, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager)
-		: m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
+	Renderer::Renderer(const Window& window, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager)
+		: m_Window{ window }
+		, m_DummyVAO{ 0u, [](auto e) { glDeleteVertexArrays(1, &e); } }
 		, m_CommandBuffer{ "gbuffer_command_buffer" }
 		, m_PostProcessingCommandBuffer{ "post_processing_command_buffer" }
 		, m_PostProcessSprite{ "post_process_sprite", meshManager.Load(Sprite()), {}, 0u }
@@ -95,8 +96,8 @@ namespace Game {
 		, m_GBufferProgram{ CreateProgram(resourceLoader, "shaders\\gbuffer.vert", "gbuffer_vertex_shader", "shaders\\gbuffer.frag", "gbuffer_fragment_shader", "gbuffer_prog")}
 		, m_LightPassProgram{ CreateProgram(resourceLoader, "shaders\\light_pass.vert", "light_pass_vertex_shader", "shaders\\light_pass.frag", "light_pass_fragment_shader", "light_pass_prog")}
 		, m_FBSampler{ FilterType::LINEAR, FilterType::LINEAR, "fb_sampler" }
-		, m_GBufferRT{ CreateRenderTarget(4u, width, height, m_FBSampler, textureManager, "gbuffer") }
-		, m_LightPassRT{ CreateRenderTarget(1u, width, height, m_FBSampler, textureManager, "light_pass") }
+		, m_GBufferRT{ CreateRenderTarget(4u, m_Window.GetRenderWidth(), m_Window.GetRenderHeight(), m_FBSampler, textureManager, "gbuffer")}
+		, m_LightPassRT{ CreateRenderTarget(1u, m_Window.GetRenderWidth(), m_Window.GetRenderHeight(), m_FBSampler, textureManager, "light_pass") }
 	{
 		m_PostProcessingCommandBuffer.Build(m_PostProcessSprite);
 
@@ -104,7 +105,7 @@ namespace Game {
 		glBindVertexArray(m_DummyVAO);
 	}
 
-	void Renderer::Render(const Scene& scene)
+	void Renderer::Render(Scene& scene)
 	{
 		m_GBufferRT.fb.Bind();
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -158,6 +159,11 @@ namespace Game {
 		m_LightBuffer.Advance();
 		m_ObjectDataBuffer.Advance();
 
+		PostRender(scene);
+	}
+
+	void Renderer::PostRender(Scene&)
+	{
 		m_LightPassRT.fb.UnBind();
 
 		glBlitNamedFramebuffer(

@@ -8,6 +8,7 @@
 #include "CommandBuffer.h"
 #include "Program.h"
 #include "Sampler.h"
+#include "Window.h"
 #include "OpenGL.h"
 #include "Utils/AutoRelease.h"
 
@@ -24,11 +25,15 @@ namespace Game {
 	class Renderer
 	{
 	public:
-		Renderer(uint32_t width, uint32_t height, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager);
+		Renderer(const Window& window, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager);
+		virtual ~Renderer() = default;
 
-		void Render(const Scene& scene);
+		void Render(Scene& scene);
 
-	private:
+	protected:
+		virtual void PostRender(Scene& scene);
+
+		const Window& m_Window;
 		AutoRelease<GLuint> m_DummyVAO;
 		CommandBuffer m_CommandBuffer;
 		CommandBuffer m_PostProcessingCommandBuffer;

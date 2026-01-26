@@ -1,4 +1,4 @@
-#include "DebugUI.h"
+#include "DebugRenderer.h"
 
 #include "Math/Ray.h"
 #include "Math/Matrix4.h"
@@ -38,8 +38,9 @@ namespace {
 
 namespace Game {
 
-	DebugUI::DebugUI(const Window& window)
-		: m_Window{ window }
+	DebugRenderer::DebugRenderer(const Window& window, ResourceLoader& resourceLoader, TextureManager& textureManager, MeshManager& meshManager)
+		: Renderer{ window, resourceLoader, textureManager, meshManager }
+		, m_Enabled{ false }
 		, m_Click{}
 		, m_SelectedEntity{}
 	{
@@ -59,15 +60,20 @@ namespace Game {
 		ImGui_ImplOpenGL3_Init();
 	}
 
-	DebugUI::~DebugUI()
+	DebugRenderer::~DebugRenderer()
 	{
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplWin32_Shutdown();
 		ImGui::DestroyContext();
 	}
 
-	void DebugUI::Render(Scene& scene)
+	void DebugRenderer::PostRender(Scene& scene)
 	{
+		Renderer::PostRender(scene);
+
+		if (!m_Enabled)
+			return;
+
 		auto& io = ImGui::GetIO();
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -196,7 +202,7 @@ namespace Game {
 		}
 	}
 
-	void DebugUI::AddMouseEvent(const MouseButtonEvent& evt)
+	void DebugRenderer::AddMouseEvent(const MouseButtonEvent& evt)
 	{
 		auto& io = ImGui::GetIO();
 		io.AddMouseButtonEvent(0, evt.GetState() == MouseButtonState::DOWN);
@@ -205,6 +211,11 @@ namespace Game {
 		{
 			m_Click = evt;
 		}
+	}
+
+	auto DebugRenderer::SetEnabled(bool enabled) -> void
+	{
+		m_Enabled = enabled;
 	}
 
 }
