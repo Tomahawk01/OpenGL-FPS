@@ -178,15 +178,25 @@ namespace Game {
 		{
 			switch (line[1])
 			{
-				case 'T': ::ImGui::TextColored({ 0.0f, 0.5f, 1.0f, 1.0f }, "%s", line.c_str()); break;
-				case 'I': ::ImGui::TextColored({ 1.0f, 1.0f, 1.0f, 1.0f }, "%s", line.c_str()); break;
-				case 'W': ::ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, "%s", line.c_str()); break;
-				case 'E': ::ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "%s", line.c_str()); break;
-				default: ::ImGui::TextColored({ 1.0f, 0.412f, 0.706f, 1.0f }, "%s", line.c_str()); break;
+				case 'T': ImGui::TextColored({ 0.0f, 0.5f, 1.0f, 1.0f }, "%s", line.c_str()); break;
+				case 'I': ImGui::TextColored({ 1.0f, 1.0f, 1.0f, 1.0f }, "%s", line.c_str()); break;
+				case 'W': ImGui::TextColored({ 1.0f, 1.0f, 0.0f, 1.0f }, "%s", line.c_str()); break;
+				case 'E': ImGui::TextColored({ 1.0f, 0.0f, 0.0f, 1.0f }, "%s", line.c_str()); break;
+				default: ImGui::TextColored({ 1.0f, 0.412f, 0.706f, 1.0f }, "%s", line.c_str()); break;
 			}
 		}
-		::ImGui::EndChild();
+		ImGui::EndChild();
 
+		ImGui::End();
+
+		ImGui::Begin("RenderTargets");
+		const auto aspectRatio = static_cast<float>(m_Window.GetRenderWidth()) / static_cast<float>(m_Window.GetRenderHeight());
+		for (auto i = 0u; i < m_GBufferRT.colorAttachmentCount; ++i)
+		{
+			const auto tex = scene.textureManager.GetTexture(m_GBufferRT.firstColorAttachmentIndex + i);
+			ImGui::Image(reinterpret_cast<ImTextureID>(static_cast<uintptr_t>(tex->GetNativeHandle())), ImVec2(200.0f * aspectRatio, 200.0f), ImVec2(0.0f, 1.0f), ImVec2(1.0f, 0.0f));
+			ImGui::SameLine();
+		}
 		ImGui::End();
 
 		ImGui::Render();
