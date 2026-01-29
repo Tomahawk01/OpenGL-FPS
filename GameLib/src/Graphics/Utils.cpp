@@ -3,6 +3,7 @@
 #include "Utils/Error.h"
 #include "Utils/Log.h"
 
+#include <filesystem>
 #include <memory>
 #include <span>
 
@@ -91,7 +92,7 @@ namespace Game {
 		};
 	}
 
-	std::vector<ModelData> LoadModel(DataBufferView modelData)
+	std::vector<ModelData> LoadModel(DataBufferView modelData, ResourceLoader& resourceLoader)
 	{
 		[[maybe_unused]] static auto* logger = []
 		{
@@ -111,13 +112,30 @@ namespace Game {
 		Ensure(scene != nullptr, "Failed to parse assimp scene");
 
 		const auto loadedMeshes = std::span<aiMesh*>(scene->mMeshes, scene->mMeshes + scene->mNumMeshes);
-		Log::Info("Found {} meshes", std::ranges::size(loadedMeshes));
+		const auto materials = std::span<aiMaterial*>(scene->mMaterials, scene->mMaterials + scene->mNumMaterials);
+		Log::Info("Found {} meshes, {} materials", std::ranges::size(loadedMeshes), std::ranges::size(materials));
+
+		//Ensure(std::ranges::size(loadedMeshes) == std::ranges::size(materials), "Mismatch mesh/material count in model file");
 
 		auto models = std::vector<ModelData>{};
 
-		for (const auto* mesh : loadedMeshes)
+		for (const auto& [index, mesh] : loadedMeshes | std::views::enumerate)
 		{
 			Log::Info("Found mesh: {}", mesh->mName.C_Str());
+
+			const auto* material = scene->mMaterials[index];
+			const auto baseColorCount = material->GetTextureCount(aiTextureType_BASE_COLOR);
+			if (baseColorCount != 1)
+			{
+				Log::Warn("Unsupported base color count: {}", baseColorCount);
+				continue;
+			}
+
+			auto pathStr = aiString{};
+			material->GetTexture(aiTextureType_BASE_COLOR, 0u, &pathStr);
+			const auto path = std::filesystem::path{ pathStr.C_Str() };
+			const auto filename = path.filename();
+			Log::Info("Found base color texture: {}", filename.string());
 
 			const auto positions = std::span<aiVector3D>{ mesh->mVertices, mesh->mVertices + mesh->mNumVertices } | std::views::transform(ToNative);
 			const auto normals = std::span<aiVector3D>{ mesh->mNormals, mesh->mNormals + mesh->mNumVertices } | std::views::transform(ToNative);
@@ -136,7 +154,7 @@ namespace Game {
 					.vertices = Vertices(positions, normals, tangents, bitangents, uvs),
 					.indices = std::move(indices)
 				},
-				.albedo = std::nullopt,
+				.albedo = LoadTexture(resourceLoader.LoadDataBuffer(std::format("textures\\{}", filename.string()))),
 				.normal = std::nullopt,
 				.specular = std::nullopt
 			});

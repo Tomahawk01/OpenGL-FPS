@@ -4,6 +4,7 @@
 #include "VertexData.h"
 #include "Utils/DataBuffer.h"
 #include "Utils/Log.h"
+#include "Resources/ResourceLoader.h"
 #include "OpenGL.h"
 
 #include "ModelData.h"
@@ -53,6 +54,6 @@ namespace Game {
 	}
 
 	TextureData LoadTexture(DataBufferView imageData);
-	std::vector<ModelData> LoadModel(DataBufferView modelData);
+	std::vector<ModelData> LoadModel(DataBufferView modelData, ResourceLoader& resourceLoader);
 
 }
