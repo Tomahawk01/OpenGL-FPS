@@ -41,6 +41,11 @@ project "GameLib"
     targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
     objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
+    postbuildcommands
+    {
+        "{COPYDIR} %{wks.location}/Common-DLLs %{wks.location}/bin/" .. outputdir .. "/Game"
+    }
+
     filter "system:windows"
         systemversion "latest"
         defines { "WINDOWS" }
