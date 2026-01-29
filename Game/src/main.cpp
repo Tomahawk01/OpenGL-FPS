@@ -167,7 +167,7 @@ int main()
 	const auto materialIndexBlue = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 	const auto materialIndexGreen = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 
-	const auto models = Game::LoadModel(resourceLoader->LoadDataBuffer("models\\de_dust2.glb"));
+	const auto models = Game::LoadModel(resourceLoader->LoadDataBuffer("models\\de_dust2.glb"), *resourceLoader);
 
 	auto scene = Game::Scene{
 		.entities = {},
@@ -195,20 +195,23 @@ int main()
 		}
 	};
 
-	scene.entities = models |
-		std::views::enumerate |
-		std::views::transform(
-			[&](const auto& e)
-			{
-				const auto& [index, model] = e;
-				return Game::Entity{
-					.name = std::format("model{}", index),
-					.meshView = meshManager.Load(model.meshData),
-					.transform = {{}, {0.1f}, {}},
-					.materialIndex = materialIndexRed
-				};
-			}) |
-		std::ranges::to<std::vector>();
+	for (const auto& [index, model] : models | std::views::enumerate)
+	{
+		auto albedoIndex = texIndex;
+		if (const auto& a = model.albedo; a)
+		{
+			auto albedo = Game::Texture{ *model.albedo, "texLeaveMeAlone", sampler };
+			albedoIndex = textureManager.Add(std::move(albedo));
+		}
+		const auto modelMat = materialManager.Add(albedoIndex, texIndex + 1u, texIndex + 2u);
+
+		scene.entities.push_back({
+			.name = std::format("model{}", index),
+			.meshView = meshManager.Load(model.meshData),
+			.transform = {{}, {0.1f}, {0.0f, 0.0f, 1.0f, 0.0f}},
+			.materialIndex = modelMat
+		});
+	}
 
 	auto keyState = std::unordered_map<Game::Key, bool>{
 		{Game::Key::W, false},

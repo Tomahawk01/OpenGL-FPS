@@ -154,7 +154,7 @@ namespace Game {
 					.vertices = Vertices(positions, normals, tangents, bitangents, uvs),
 					.indices = std::move(indices)
 				},
-				.albedo = LoadTexture(resourceLoader.LoadDataBuffer(std::format("textures\\{}", filename.string()))),
+				.albedo = std::nullopt, //LoadTexture(resourceLoader.LoadDataBuffer(std::format("textures\\{}", filename.string()))),
 				.normal = std::nullopt,
 				.specular = std::nullopt
 			});
