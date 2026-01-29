@@ -167,6 +167,8 @@ int main()
 	const auto materialIndexBlue = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 	const auto materialIndexGreen = materialManager.Add(texIndex, texIndex + 1u, texIndex + 2u);
 
+	const auto models = Game::LoadModel(resourceLoader->LoadDataBuffer("models\\de_dust2.glb"));
+
 	auto scene = Game::Scene{
 		.entities = {},
 		.meshManager = meshManager,
@@ -193,13 +195,20 @@ int main()
 		}
 	};
 
-	scene.entities.push_back(
-		{ .name = "cube1", .meshView = meshManager.Load(Cube()), .transform = {{10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialIndex = materialIndexRed }
-	);
-
-	scene.entities.push_back(
-		{ .name = "cube2", .meshView = meshManager.Load(Cube()), .transform = {{-10.0f, 0.0f, -10.0f}, {5.0f}, {}}, .materialIndex = materialIndexGreen }
-	);
+	scene.entities = models |
+		std::views::enumerate |
+		std::views::transform(
+			[&](const auto& e)
+			{
+				const auto& [index, model] = e;
+				return Game::Entity{
+					.name = std::format("model{}", index),
+					.meshView = meshManager.Load(model.meshData),
+					.transform = {{}, {0.1f}, {}},
+					.materialIndex = materialIndexRed
+				};
+			}) |
+		std::ranges::to<std::vector>();
 
 	auto keyState = std::unordered_map<Game::Key, bool>{
 		{Game::Key::W, false},
