@@ -23,11 +23,13 @@ project "GameLib"
         "%{wks.location}/vendor/ImGui/include",
         "%{wks.location}/vendor/ImGuizmo",
         "%{wks.location}/vendor/stb",
+        "%{wks.location}/vendor/assimp-5.4.3/include",
     }
 
     libdirs
     {
         "%{wks.location}/vendor/ImGui/lib",
+        "%{wks.location}/vendor/assimp-5.4.3/lib",
     }
 
     links
@@ -51,8 +53,16 @@ project "GameLib"
         defines { "DEBUG" }
         runtime "Debug"
         symbols "On"
+        links
+        {
+            "assimp-vc143-mtd.lib"
+        }
 
     filter "configurations:Release"
         defines { "RELEASE" }
         runtime "Release"
         optimize "On"
+        links
+        {
+            "assimp-vc143-mt.lib"
+        }
