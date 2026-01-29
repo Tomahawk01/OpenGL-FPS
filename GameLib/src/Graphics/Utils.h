@@ -6,6 +6,8 @@
 #include "Utils/Log.h"
 #include "OpenGL.h"
 
+#include "ModelData.h"
+
 #include <vector>
 #include <ranges>
 #include <string_view>
@@ -51,5 +53,6 @@ namespace Game {
 	}
 
 	TextureData LoadTexture(DataBufferView imageData);
+	std::vector<ModelData> LoadModel(DataBufferView modelData);
 
 }

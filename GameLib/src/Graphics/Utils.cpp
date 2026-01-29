@@ -1,13 +1,56 @@
 #include "Utils.h"
 
 #include "Utils/Error.h"
+#include "Utils/Log.h"
 
 #include <memory>
+#include <span>
+
+#include <assimp/DefaultLogger.hpp>
+#include <assimp/postprocess.h>
+#include <assimp/Importer.hpp>
+#include <assimp/LogStream.hpp>
+#include <assimp/Logger.hpp>
+#include <assimp/scene.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 namespace {
+
+	template<Game::Log::Level L>
+	class SimpleAssimpLogStream : public Assimp::LogStream
+	{
+	public:
+		void write(const char* msg) override
+		{
+			if constexpr (L == Game::Log::Level::INFO)
+			{
+				Game::Log::Info("{}", msg);
+			}
+			else if constexpr (L == Game::Log::Level::WARN)
+			{
+				Game::Log::Warn("{}", msg);
+			}
+			else if constexpr (L == Game::Log::Level::ERR)
+			{
+				Game::Log::Error("{}", msg);
+			}
+			else if constexpr (L == Game::Log::Level::TRACE)
+			{
+				Game::Log::Trace("{}", msg);
+			}
+			else
+			{
+				Game::Log::Error("[Unknown Level] {}", msg);
+			}
+		}
+	};
+
+	Game::vec3 ToNative(const aiVector3D& v)
+	{
+		return { v.x, v.y, v.z };
+	}
 
 	Game::TextureFormat ChannelsToFormat(int numChannels)
 	{
@@ -46,6 +89,60 @@ namespace Game {
 			.format = ChannelsToFormat(numChannels),
 			.data = { {ptr, ptr + width * height * numChannels} }
 		};
+	}
+
+	std::vector<ModelData> LoadModel(DataBufferView modelData)
+	{
+		[[maybe_unused]] static auto* logger = []
+		{
+			Assimp::DefaultLogger::create("", Assimp::Logger::VERBOSE);
+			auto* logger = Assimp::DefaultLogger::get();
+
+			logger->attachStream(new SimpleAssimpLogStream<Log::Level::ERR>{}, Assimp::Logger::Err);
+			logger->attachStream(new SimpleAssimpLogStream<Log::Level::TRACE>{}, Assimp::Logger::Debugging);
+			logger->attachStream(new SimpleAssimpLogStream<Log::Level::WARN>{}, Assimp::Logger::Warn);
+			logger->attachStream(new SimpleAssimpLogStream<Log::Level::INFO>{}, Assimp::Logger::Info);
+
+			return logger;
+		}();
+
+		auto importer = Assimp::Importer{};
+		const auto* scene = importer.ReadFileFromMemory(modelData.data(), modelData.size(), aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+		Ensure(scene != nullptr, "Failed to parse assimp scene");
+
+		const auto loadedMeshes = std::span<aiMesh*>(scene->mMeshes, scene->mMeshes + scene->mNumMeshes);
+		Log::Info("Found {} meshes", std::ranges::size(loadedMeshes));
+
+		auto models = std::vector<ModelData>{};
+
+		for (const auto* mesh : loadedMeshes)
+		{
+			Log::Info("Found mesh: {}", mesh->mName.C_Str());
+
+			const auto positions = std::span<aiVector3D>{ mesh->mVertices, mesh->mVertices + mesh->mNumVertices } | std::views::transform(ToNative);
+			const auto normals = std::span<aiVector3D>{ mesh->mNormals, mesh->mNormals + mesh->mNumVertices } | std::views::transform(ToNative);
+			const auto tangents = std::span<aiVector3D>{ mesh->mTangents, mesh->mTangents + mesh->mNumVertices } | std::views::transform(ToNative);
+			const auto bitangents = std::span<aiVector3D>{ mesh->mBitangents, mesh->mBitangents + mesh->mNumVertices } | std::views::transform(ToNative);
+			const auto uvs = std::span<aiVector3D>{ mesh->mTextureCoords[0], mesh->mTextureCoords[0] + mesh->mNumVertices } |
+				std::views::transform([](const auto& v) { return UV{ .s = v.x, .t = v.y }; });
+
+			auto indices = std::span<aiFace>{ mesh->mFaces, mesh->mFaces + mesh->mNumFaces } |
+				std::views::transform([](const auto& e) { return std::span<uint32_t>{ e.mIndices, e.mIndices + e.mNumIndices }; }) |
+				std::views::join |
+				std::ranges::to<std::vector>();
+
+			models.push_back({
+				.meshData = {
+					.vertices = Vertices(positions, normals, tangents, bitangents, uvs),
+					.indices = std::move(indices)
+				},
+				.albedo = std::nullopt,
+				.normal = std::nullopt,
+				.specular = std::nullopt
+			});
+		}
+
+		return models;
 	}
 
 }
