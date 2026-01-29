@@ -44,6 +44,10 @@ namespace {
 		#embed "../Game/assets/textures/diamond_floor_specular.png"
 	};
 
+	constexpr const char de_dust2[] = {
+		#embed "../Game/assets/models/de_dust2.glb"
+	};
+
 	template<class T>
 	T ToContainer(std::span<const char> data)
 	{
@@ -60,12 +64,15 @@ namespace Game {
 	EmbeddedResourceLoader::EmbeddedResourceLoader()
 	{
 		m_Lookup = {
+			{"models\\de_dust2.glb", de_dust2},
+
 			{"shaders\\simple.vert", simpleVertexShader},
 			{"shaders\\simple.frag", simpleFragmentShader},
 			{"shaders\\gbuffer.vert", gbufferVertexShader},
 			{"shaders\\gbuffer.frag", gbufferFragmentShader},
 			{"shaders\\light_pass.vert", lightPassVertexShader},
 			{"shaders\\light_pass.frag", lightPassFragmentShader},
+
 			{"textures\\diamond_floor_albedo.png", diamondFloorAlbedo},
 			{"textures\\diamond_floor_normal.png", diamondFloorNormal},
 			{"textures\\diamond_floor_specular.png", diamondFloorSpecular},
